@@ -10,10 +10,11 @@ import (
 )
 
 type TxLogReaderImpl struct {
-	readers   map[string]txcommon.TransactionLogReader
-	dir       string
-	recursive bool
-	sort      bool
+	readers       map[string]txcommon.TransactionLogReader
+	dir           string
+	recursive     bool
+	sort          bool
+	ignoreUnknown bool
 }
 
 func NewTxLogReader() *TxLogReaderImpl {
@@ -29,6 +30,13 @@ func NewTxLogReader() *TxLogReaderImpl {
 func (lr *TxLogReaderImpl) IsRecursive() *TxLogReaderImpl {
 
 	lr.recursive = true
+	return lr
+
+}
+
+func (lr *TxLogReaderImpl) IgnoreUnknownFiles() *TxLogReaderImpl {
+
+	lr.ignoreUnknown = true
 	return lr
 
 }
@@ -105,6 +113,10 @@ func (lr *TxLogReaderImpl) read(directory string, recursive bool) []txcommon.Tra
 
 		log := lr.logReaderFromFileName(file.Name())
 
+		if log == nil {
+			continue
+		}
+
 		data, err := ioutil.ReadFile(filepath.Join(directory, file.Name()))
 
 		if err != nil {
@@ -122,6 +134,10 @@ func (lr *TxLogReaderImpl) logReaderFromFileName(name string) txcommon.Transacti
 
 	if lr, ok := lr.readers[logReaderNameFromFileName(name)]; ok {
 		return lr
+	}
+
+	if lr.ignoreUnknown {
+		return nil
 	}
 
 	panic(

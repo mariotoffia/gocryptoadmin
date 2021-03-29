@@ -25,6 +25,7 @@ type Product struct {
 type Transaction struct {
 	Portfolio string    `csv:"portfolio" json:"portfolio"`
 	ID        string    `csv:"id" json:"id"`
+	Exchange  string    `csv:"exchange" json:"exchange"`
 	Side      SideType  `csv:"side" json:"side"`
 	CreatedAt time.Time `csv:"created" json:"created"`
 	Product
@@ -32,6 +33,6 @@ type Transaction struct {
 }
 
 type TransactionGroup struct {
-	Tx []Transaction      `json:"tx,omitempty"`
-	Tg []TransactionGroup `json:"tg,omitempty"`
+	Transaction
+	Tx []Transaction `json:"tx,omitempty"`
 }

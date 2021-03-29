@@ -45,6 +45,7 @@ func (c *cbp) Transform(entry interface{}) txcommon.Transaction {
 		return txcommon.Transaction{
 			Portfolio: v.Portfolio,
 			ID:        v.ID,
+			Exchange:  "coinbase-pro",
 			Side:      v.Side,
 			CreatedAt: v.CreatedAt,
 			Product: txcommon.Product{
