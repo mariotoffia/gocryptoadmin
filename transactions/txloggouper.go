@@ -10,65 +10,64 @@ import (
 
 type TxLogGrouperImpl struct {
 	secwindow time.Duration
+	tx        []txcommon.Transaction
+	txg       []txcommon.TransactionGroup
 }
 
-func NewTxLogGrouperImpl() *TxLogGrouperImpl {
-	return &TxLogGrouperImpl{
+func NewTxLogGrouperImpl(tx []txcommon.Transaction) *TxLogGrouperImpl {
+
+	return (&TxLogGrouperImpl{
 		secwindow: time.Duration(5 * 60),
-	}
+		tx:        tx,
+		txg:       []txcommon.TransactionGroup{},
+	}).groupByExchangeCreatedProductSide()
+
 }
 
-func (tg *TxLogGrouperImpl) GroupByDefault(tx []txcommon.Transaction) []txcommon.TransactionGroup {
+func (tg *TxLogGrouperImpl) TransactionGroups() []txcommon.TransactionGroup {
+	return tg.txg
+}
 
-	var ordered []txcommon.Transaction
+func (tg *TxLogGrouperImpl) Transactions() []txcommon.Transaction {
+	return tg.tx
+}
 
-	linq.From(tx).
-		OrderBy(func(tx interface{}) interface{} {
-			return tx.(txcommon.Transaction).Exchange
-		}).
-		ThenBy(func(tx interface{}) interface{} {
-			return tx.(txcommon.Transaction).CreatedAt.Unix()
-		}).
-		ThenBy(func(tx interface{}) interface{} {
-			return tx.(txcommon.Transaction).Product.Product
-		}).
-		ThenBy(func(tx interface{}) interface{} {
-			return string(tx.(txcommon.Transaction).Side)
-		}).
-		ToSlice(&ordered)
+func (tg *TxLogGrouperImpl) GroupViaTimeWindow() *TxLogGrouperImpl {
 
-	last := ordered[0].CreatedAt.Add(time.Second * tg.secwindow)
-	side := ordered[0].Side
-	product := ordered[0].Product.Product
-	exchange := ordered[0].Exchange
-	price := ordered[0].Cost.Price
+	tx := tg.tx
+
+	last := tx[0].CreatedAt.Add(time.Second * tg.secwindow)
+	side := tx[0].Side
+	product := tx[0].Product.Product
+	exchange := tx[0].Exchange
+	price := tx[0].Cost.Price
 
 	txg := []txcommon.TransactionGroup{}
 
 	grp := txcommon.TransactionGroup{
 		Transaction: txcommon.Transaction{
-			Portfolio: ordered[0].Portfolio,
-			ID:        ordered[0].CreatedAt.String(),
-			Exchange:  ordered[0].Exchange,
-			Side:      ordered[0].Side,
-			CreatedAt: ordered[0].CreatedAt,
+			Portfolio: tx[0].Portfolio,
+			ID:        tx[0].CreatedAt.String(),
+			Exchange:  tx[0].Exchange,
+			Side:      tx[0].Side,
+			CreatedAt: tx[0].CreatedAt,
 
 			Product: txcommon.Product{
-				Product: ordered[0].Product.Product,
+				Product: tx[0].Product.Product,
 				Size:    0,
-				Unit:    ordered[0].Product.Unit,
+				Unit:    tx[0].Product.Unit,
 			},
 			Cost: txcommon.Cost{
-				Price:    ordered[0].Cost.Price,
+				Price:    tx[0].Cost.Price,
 				Fee:      0,
 				Total:    0,
-				CostUnit: ordered[0].Cost.CostUnit,
+				CostUnit: tx[0].Cost.CostUnit,
 			},
 		},
 		Tx: []txcommon.Transaction{},
 	}
 
-	for _, txr := range ordered {
+	for _, txr := range tx {
 
 		if txr.CreatedAt.Before(last) &&
 			side == txr.Side &&
@@ -121,26 +120,57 @@ func (tg *TxLogGrouperImpl) GroupByDefault(tx []txcommon.Transaction) []txcommon
 
 	}
 
-	txg = append(txg, grp)
+	tg.txg = append(txg, grp)
+	return tg
+}
 
-	fmt.Printf("count: %d\n", len(txg))
+func (tg *TxLogGrouperImpl) DumpGroup(details bool) *TxLogGrouperImpl {
 
-	for _, grp := range txg {
+	for _, grp := range tg.txg {
 
 		fmt.Printf(
 			"[%s] %s %s %f %s Price: %f Total: %f\n",
 			grp.Exchange, grp.ID, grp.Side, grp.Product.Size, grp.Product.Product,
 			grp.Cost.Price, grp.Cost.Total,
 		)
-		/*
+
+		if details {
+
 			for _, txr := range grp.Tx {
 				fmt.Printf(
 					"\t%s %f %s Price: %f Total: %f\n",
 					txr.CreatedAt.String(), txr.Product.Size, txr.Product.Product,
 					txr.Cost.Price, txr.Total,
 				)
-			}*/
+			}
+
+		}
 	}
 
-	return txg
+	return tg
+}
+
+// groupByExchangeCreatedProductSide prepares the transactions to be grouped
+func (tg *TxLogGrouperImpl) groupByExchangeCreatedProductSide() *TxLogGrouperImpl {
+
+	var ordered []txcommon.Transaction
+
+	linq.From(tg.tx).
+		OrderBy(func(tx interface{}) interface{} {
+			return tx.(txcommon.Transaction).Exchange
+		}).
+		ThenBy(func(tx interface{}) interface{} {
+			return tx.(txcommon.Transaction).CreatedAt.Unix()
+		}).
+		ThenBy(func(tx interface{}) interface{} {
+			return tx.(txcommon.Transaction).Product.Product
+		}).
+		ThenBy(func(tx interface{}) interface{} {
+			return string(tx.(txcommon.Transaction).Side)
+		}).
+		ToSlice(&ordered)
+
+	tg.tx = ordered
+	return tg
+
 }

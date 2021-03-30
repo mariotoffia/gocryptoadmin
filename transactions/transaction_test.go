@@ -66,5 +66,9 @@ default,382593,XLM-EUR,SELL,2019-06-26T13:35:46.772Z,439.00000000,XLM,0.11375,0.
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		Read()
 
-	NewTxLogGrouperImpl().GroupByDefault(tx)
+	tg := NewTxLogGrouperImpl(tx).
+		GroupViaTimeWindow().
+		DumpGroup(true).TransactionGroups()
+
+	fmt.Println(len(tg))
 }
