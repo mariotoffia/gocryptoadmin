@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ahmetb/go-linq/v3"
 	"github.com/mariotoffia/gocryptoadmin/transactions/txprocessors"
 	"github.com/mariotoffia/gocryptoadmin/transactions/txreaders/coinbasepro"
 	"github.com/mariotoffia/gocryptoadmin/utils"
@@ -147,27 +148,44 @@ func TestEarningsPerYear(t *testing.T) {
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		Read()
 
-		/*
-			var ltc []txcommon.Transaction
-
-			linq.From(entries).
-				Where(func(tx interface{}) bool {
-					return tx.(txcommon.Transaction).Asset == "LTC-EUR"
-				}).
-				ToSlice(&ltc)*/
-	ltc := entries
-
-	weighted := txprocessors.WeightedPrice(ltc)
+	weighted := txprocessors.WeightedPrice(entries)
 	paired, unpaired := txprocessors.PairBuySell(weighted)
 
-	for _, tx := range paired {
+	const layout = "2006-01-02"
+	const tax = 0.3
+	for _, year := range []int{2017, 2018, 2019, 2020, 2021} {
 
-		fmt.Printf(
-			"[%s] %s %s %f (Earned: %f)\n%s BP:%f BF:%f BT:%f\n%s SP:%f SF:%f ST:%f\n",
-			tx.Exchange, tx.Asset, tx.Unit, tx.Size, utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 2),
-			tx.BoughtAt.String(), tx.BoughtPrice, tx.BoughtFee, tx.BoughtTotal,
-			tx.SoldAt.String(), tx.SoldPrice, tx.SoldFee, tx.SoldTotal,
-		)
+		var data []txprocessors.PairedTransaction
+
+		linq.From(paired).
+			Where(func(tx interface{}) bool {
+				return tx.(txprocessors.PairedTransaction).SoldAt.Year() == year
+			}).
+			ToSlice(&data)
+
+		fmt.Printf("\nYear: %d\n------------------------------\n", year)
+		fmt.Println("Antal	Namn	Inköpsdatum		Inköpsbelopp	Försäljningsdatum	Försäljningsbelopp	Vinst		Skatt")
+		fmt.Println("------------------------------------------------------------------------------------------------------------------------------")
+
+		totTax := float64(0)
+		tot := float64(0)
+		for _, tx := range data {
+
+			totTax += utils.ToFixed((tx.BoughtTotal+tx.Sell.Total)*tax, 8)
+			tot += utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 8)
+
+			fmt.Printf(
+				"%f\t%s\t%s\t%f\t%s\t\t%f\t\t%f\t%f\n",
+				tx.Size, tx.Asset,
+				tx.BoughtAt.Format(layout), utils.ToFixed(-tx.BoughtTotal, 2),
+				tx.SoldAt.Format(layout), utils.ToFixed(tx.SoldTotal, 2),
+				utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 2),
+				utils.ToFixed((tx.BoughtTotal+tx.Sell.Total)*tax, 2),
+			)
+
+		}
+
+		fmt.Printf("\n-------------------------------------\nTax: %f Earned: %f\n-------------------------------------\n", totTax, tot)
 
 	}
 
@@ -184,4 +202,5 @@ func TestEarningsPerYear(t *testing.T) {
 	}
 
 	fmt.Printf("original: %d weighted+paired: %d\n", len(entries), len(weighted))
+
 }
