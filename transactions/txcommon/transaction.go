@@ -89,7 +89,7 @@ func Exchanges(tx []Transaction) []string {
 	return exchanges
 }
 
-func Products(tx []Transaction) []string {
+func Assets(tx []Transaction) []string {
 
 	var products []string
 
