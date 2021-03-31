@@ -7,7 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ahmetb/go-linq/v3"
 	"github.com/mariotoffia/gocryptoadmin/transactions/coinbasepro"
+	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,10 +41,41 @@ default,382593,XLM-EUR,SELL,2019-06-26T13:35:46.772Z,439.00000000,XLM,0.11375,0.
 
 	tx := NewTxLogReader().
 		UseDir(filepath.Dir(fp)).
-		SortRead().
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		Read()
 
-	fmt.Println(tx)
+	fmt.Println(tx[0].ToCSVEntry())
+	fmt.Println(len(tx))
 
+}
+
+func TestProcessing(t *testing.T) {
+
+	entries := NewTxLogReader().
+		UseDir("../data").
+		IgnoreUnknownFiles().
+		UseWindowSize(6*60*60 /*6h*/).
+		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
+		Read()
+
+	var ltc []txcommon.Transaction
+	linq.From(entries).
+		Where(func(tx interface{}) bool {
+			return tx.(txcommon.Transaction).Asset == "LTC-EUR"
+		}).
+		ToSlice(&ltc)
+
+	for _, tx := range ltc {
+
+		fmt.Printf(
+			"[%s:%d] %s %s %s \n S:%f  F:%f  T:%f P:%f\nGS:%f GF:%f GT:%f\nAS:%f AF:%f AT:%f\n",
+			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.Asset,
+			tx.Size, tx.Fee, tx.Total, tx.Price,
+			tx.GrpSize, tx.GrpFee, tx.GrpTotal,
+			tx.AccSize, tx.AccFee, tx.AccTotal,
+		)
+
+	}
+
+	fmt.Println(len(entries))
 }

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
 )
@@ -13,8 +14,8 @@ type TxLogReaderImpl struct {
 	readers       map[string]txcommon.TransactionLogReader
 	dir           string
 	recursive     bool
-	sort          bool
 	ignoreUnknown bool
+	secwindow     time.Duration
 }
 
 func NewTxLogReader() *TxLogReaderImpl {
@@ -23,10 +24,15 @@ func NewTxLogReader() *TxLogReaderImpl {
 		readers:   map[string]txcommon.TransactionLogReader{},
 		dir:       ".",
 		recursive: false,
+		secwindow: time.Duration(5 * 60),
 	}
 
 }
 
+func (lr *TxLogReaderImpl) UseWindowSize(seconds int64) *TxLogReaderImpl {
+	lr.secwindow = time.Duration(seconds)
+	return lr
+}
 func (lr *TxLogReaderImpl) IsRecursive() *TxLogReaderImpl {
 
 	lr.recursive = true
@@ -48,13 +54,6 @@ func (lr *TxLogReaderImpl) UseDir(dir string) *TxLogReaderImpl {
 
 }
 
-func (lr *TxLogReaderImpl) SortRead() *TxLogReaderImpl {
-
-	lr.sort = true
-	return lr
-
-}
-
 func (lr *TxLogReaderImpl) RegisterReader(
 	name string,
 	reader txcommon.TransactionLogReader) *TxLogReaderImpl {
@@ -67,12 +66,7 @@ func (lr *TxLogReaderImpl) RegisterReader(
 func (lr *TxLogReaderImpl) Read() []txcommon.Transaction {
 
 	tx := lr.read(lr.dir, lr.recursive)
-
-	if lr.sort {
-		return SortLogs(tx)
-	}
-
-	return tx
+	return lr.preProcess(tx)
 }
 
 func (lr *TxLogReaderImpl) read(directory string, recursive bool) []txcommon.Transaction {
@@ -146,6 +140,7 @@ func (lr *TxLogReaderImpl) logReaderFromFileName(name string) txcommon.Transacti
 		),
 	)
 }
+
 func logReaderNameFromFileName(name string) string {
 	return strings.SplitN(name, "_", 2)[0]
 }

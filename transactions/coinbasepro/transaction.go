@@ -8,8 +8,6 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
 )
 
-// https://github.com/jszwec/csvutil
-
 // cbp implements the `TransactionLogReader` interface
 type cbp struct {
 }
@@ -49,9 +47,9 @@ func (c *cbp) Transform(entry interface{}) txcommon.Transaction {
 			Side:      v.Side,
 			CreatedAt: v.CreatedAt,
 			Product: txcommon.Product{
-				Product: v.Product,
-				Size:    v.Size,
-				Unit:    v.Unit,
+				Asset: v.Product,
+				Size:  v.Size,
+				Unit:  v.Unit,
 			},
 			Cost: txcommon.Cost{
 				Price:    v.Price,
@@ -60,7 +58,6 @@ func (c *cbp) Transform(entry interface{}) txcommon.Transaction {
 				CostUnit: v.CostUnit,
 			},
 		}
-
 	}
 
 	panic(
