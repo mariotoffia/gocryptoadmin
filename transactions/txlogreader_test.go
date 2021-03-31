@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ahmetb/go-linq/v3"
-	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
 	"github.com/mariotoffia/gocryptoadmin/transactions/txprocessors"
 	"github.com/mariotoffia/gocryptoadmin/transactions/txreaders/coinbasepro"
 	"github.com/mariotoffia/gocryptoadmin/utils"
@@ -101,15 +99,18 @@ func TestPairedBuySell(t *testing.T) {
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		Read()
 
-	var ltc []txcommon.Transaction
-	linq.From(entries).
-		Where(func(tx interface{}) bool {
-			return tx.(txcommon.Transaction).Asset == "LTC-EUR"
-		}).
-		ToSlice(&ltc)
+		/*
+			var ltc []txcommon.Transaction
+
+			linq.From(entries).
+				Where(func(tx interface{}) bool {
+					return tx.(txcommon.Transaction).Asset == "LTC-EUR"
+				}).
+				ToSlice(&ltc)*/
+	ltc := entries
 
 	weighted := txprocessors.WeightedPrice(ltc)
-	paired, _ := txprocessors.PairBuySell(weighted)
+	paired, unpaired := txprocessors.PairBuySell(weighted)
 
 	for _, tx := range paired {
 
@@ -122,5 +123,65 @@ func TestPairedBuySell(t *testing.T) {
 
 	}
 
-	fmt.Printf("original: %d weighted: %d\n", len(entries), len(weighted))
+	fmt.Printf("\nUnparied\n--------------------------\n")
+
+	for _, tx := range unpaired {
+
+		fmt.Printf(
+			"[%s] %s %s %s %s Size: %f Price: %f Fee: %f Total: %f [%s]\n",
+			tx.Exchange, tx.CreatedAt, tx.Side, tx.Asset, tx.Unit, tx.Size,
+			tx.Price, tx.Fee, tx.Total, tx.CostUnit,
+		)
+
+	}
+
+	fmt.Printf("original: %d weighted+paired: %d\n", len(entries), len(weighted))
+}
+
+func TestEarningsPerYear(t *testing.T) {
+
+	entries := NewTxLogReader().
+		UseDir("../data").
+		IgnoreUnknownFiles().
+		UseWindowSize(6*60*60 /*6h*/).
+		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
+		Read()
+
+		/*
+			var ltc []txcommon.Transaction
+
+			linq.From(entries).
+				Where(func(tx interface{}) bool {
+					return tx.(txcommon.Transaction).Asset == "LTC-EUR"
+				}).
+				ToSlice(&ltc)*/
+	ltc := entries
+
+	weighted := txprocessors.WeightedPrice(ltc)
+	paired, unpaired := txprocessors.PairBuySell(weighted)
+
+	for _, tx := range paired {
+
+		fmt.Printf(
+			"[%s] %s %s %f (Earned: %f)\n%s BP:%f BF:%f BT:%f\n%s SP:%f SF:%f ST:%f\n",
+			tx.Exchange, tx.Asset, tx.Unit, tx.Size, utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 2),
+			tx.BoughtAt.String(), tx.BoughtPrice, tx.BoughtFee, tx.BoughtTotal,
+			tx.SoldAt.String(), tx.SoldPrice, tx.SoldFee, tx.SoldTotal,
+		)
+
+	}
+
+	fmt.Printf("\nUnparied\n--------------------------\n")
+
+	for _, tx := range unpaired {
+
+		fmt.Printf(
+			"[%s] %s %s %s %s Size: %f Price: %f Fee: %f Total: %f [%s]\n",
+			tx.Exchange, tx.CreatedAt, tx.Side, tx.Asset, tx.Unit, tx.Size,
+			tx.Price, tx.Fee, tx.Total, tx.CostUnit,
+		)
+
+	}
+
+	fmt.Printf("original: %d weighted+paired: %d\n", len(entries), len(weighted))
 }
