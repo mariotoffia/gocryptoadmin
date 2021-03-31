@@ -6,6 +6,7 @@ import (
 
 	"github.com/ahmetb/go-linq/v3"
 	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
+	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
 type PairedTransaction struct {
@@ -83,9 +84,10 @@ func PairBuySell(
 				}
 
 				if buy.Size < tx.Size {
-					// get all needed buys
-					for buyqueue.IsEmpty() {
-					}
+					return
+					// TODO: get all needed buys
+					/*for buyqueue.IsEmpty() {
+					}*/
 				}
 
 			} // for _, tx := range group
@@ -103,22 +105,22 @@ func splitBuy(
 
 	pushme = buy
 	pairme = buy
-	factor := sell.Size / buy.Size
+	factor := utils.ToFixed(sell.Size/buy.Size, 8)
 
-	fmt.Printf("must match %f = %f", factor*buy.Size, buy.Size-sell.Size)
+	fmt.Printf("must match %f = %f", utils.ToFixed(factor*buy.Size, 8), utils.ToFixed(buy.Size-sell.Size, 8))
 
-	pushme.Size = buy.Size - sell.Size
-	pushme.Fee *= (1 - factor)
-	pushme.Price *= (1 - factor)
-	pushme.Total *= (1 - factor)
+	pushme.Size = utils.ToFixed(buy.Size-sell.Size, 8)
+	pushme.Fee = utils.ToFixed(pushme.Fee*(1-factor), 8)
+	pushme.Price = utils.ToFixed(pushme.Price*(1-factor), 8)
+	pushme.Total = utils.ToFixed(pushme.Total*(1-factor), 8)
 	pushme.GrpFee = pushme.Fee
 	pushme.GrpSize = pushme.Size
 	pushme.GrpTotal = pushme.Total
 
 	pairme.Size = sell.Size
-	pairme.Fee *= factor
-	pairme.Price *= factor
-	pairme.Total *= factor
+	pairme.Fee = utils.ToFixed(pairme.Fee*factor, 8)
+	pairme.Price *= utils.ToFixed(pairme.Price*factor, 8)
+	pairme.Total *= utils.ToFixed(pairme.Total*factor, 8)
 	pairme.GrpFee = pairme.Fee
 	pairme.GrpSize = pairme.Size
 	pairme.GrpTotal = pairme.Total
@@ -145,9 +147,9 @@ func createPairedTx(sell txcommon.Transaction, buy []txcommon.Transaction) Paire
 
 	for _, b := range buy {
 
-		pt.BoughtFee += b.Fee
-		pt.BoughtPrice += b.Price
-		pt.BoughtTotal += b.Total
+		pt.BoughtFee = utils.ToFixed(pt.BoughtFee+b.Fee, 8)
+		pt.BoughtPrice = utils.ToFixed(pt.BoughtPrice+b.Price, 8)
+		pt.BoughtTotal = utils.ToFixed(pt.BoughtTotal+b.Total, 8)
 
 	}
 

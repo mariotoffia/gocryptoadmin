@@ -3,6 +3,7 @@ package txprocessors
 import (
 	"github.com/ahmetb/go-linq/v3"
 	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
+	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
 func WeightedPrice(logs []txcommon.Transaction) []txcommon.Transaction {
@@ -40,14 +41,14 @@ func WeightedPrice(logs []txcommon.Transaction) []txcommon.Transaction {
 		}
 
 		tx := group[0]
-		tx.Size = size
-		tx.Fee = fee
-		tx.Price = totalPrice / size
+		tx.Size = utils.ToFixed(size, 8)
+		tx.Fee = utils.ToFixed(fee, 8)
+		tx.Price = utils.ToFixed(totalPrice/size, 8)
 
 		if tx.Side == txcommon.SideTypeBuy {
-			tx.Total = -totalPrice - fee
+			tx.Total = utils.ToFixed(-totalPrice-fee, 8)
 		} else {
-			tx.Total = totalPrice - fee
+			tx.Total = utils.ToFixed(totalPrice-fee, 8)
 		}
 
 		tx.GrpFee = tx.Fee

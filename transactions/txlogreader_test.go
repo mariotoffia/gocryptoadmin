@@ -11,6 +11,7 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
 	"github.com/mariotoffia/gocryptoadmin/transactions/txprocessors"
 	"github.com/mariotoffia/gocryptoadmin/transactions/txreaders/coinbasepro"
+	"github.com/mariotoffia/gocryptoadmin/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -113,10 +114,10 @@ func TestPairedBuySell(t *testing.T) {
 	for _, tx := range paired {
 
 		fmt.Printf(
-			"[%s] %s %s %f\n%s SP:%f SF:%f ST:%f\n%s BP:%f BF:%f BT:%f\n",
-			tx.Exchange, tx.Asset, tx.Unit, tx.Size,
-			tx.SoldAt.String(), tx.SoldPrice, tx.SoldFee, tx.SoldTotal,
+			"[%s] %s %s %f (Earned: %f)\n%s BP:%f BF:%f BT:%f\n%s SP:%f SF:%f ST:%f\n",
+			tx.Exchange, tx.Asset, tx.Unit, tx.Size, utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 2),
 			tx.BoughtAt.String(), tx.BoughtPrice, tx.BoughtFee, tx.BoughtTotal,
+			tx.SoldAt.String(), tx.SoldPrice, tx.SoldFee, tx.SoldTotal,
 		)
 
 	}

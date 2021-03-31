@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
+	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
 type TxLogReaderImpl struct {
@@ -190,9 +191,9 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 
 		proc := products[tx.Exchange+tx.Asset+string(tx.Side)]
 
-		proc.intervalAcc.GrpSize = proc.intervalAcc.GrpSize + tx.Size
-		proc.intervalAcc.GrpTotal = proc.intervalAcc.GrpTotal + tx.Cost.Total
-		proc.intervalAcc.GrpFee = proc.intervalAcc.GrpFee + tx.Cost.Fee
+		proc.intervalAcc.GrpSize = utils.ToFixed(proc.intervalAcc.GrpSize+tx.Size, 8)
+		proc.intervalAcc.GrpTotal = utils.ToFixed(proc.intervalAcc.GrpTotal+tx.Cost.Total, 8)
+		proc.intervalAcc.GrpFee = utils.ToFixed(proc.intervalAcc.GrpFee+tx.Cost.Fee, 8)
 
 		if lastSide[tx.Exchange+tx.Asset] == tx.Side &&
 			tx.CreatedAt.Before(proc.next) {
