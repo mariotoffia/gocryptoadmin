@@ -162,7 +162,7 @@ func splitTxBySize(
 
 	remainder.Size = utils.ToFixed(tx.Size-splitSize, 8)
 	remainder.Fee = utils.ToFixed(remainder.Fee*(1-factor), 8)
-	remainder.Price = utils.ToFixed(remainder.Price*(1-factor), 8)
+	//remainder.Price = utils.ToFixed(remainder.Price*(1-factor), 8)
 	remainder.Total = utils.ToFixed(remainder.Total*(1-factor), 8)
 	remainder.GrpFee = remainder.Fee
 	remainder.GrpSize = remainder.Size
@@ -170,7 +170,7 @@ func splitTxBySize(
 
 	split.Size = splitSize
 	split.Fee = utils.ToFixed(split.Fee*factor, 8)
-	split.Price = utils.ToFixed(split.Price*factor, 8)
+	//split.Price = utils.ToFixed(split.Price*factor, 8)
 	split.Total = utils.ToFixed(split.Total*factor, 8)
 	split.GrpFee = split.Fee
 	split.GrpSize = split.Size

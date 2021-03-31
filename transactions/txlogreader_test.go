@@ -136,7 +136,20 @@ func TestPairedBuySell(t *testing.T) {
 	weighted := txprocessors.WeightedPrice(ltc)
 	paired, unpaired := txprocessors.PairBuySell(weighted)
 
+	/* TODO: this is incorrect!
+			[coinbase-pro] BTC-EUR 1.000000 (Earned: 161.350000)
+		2018-01-28 21:52:23.686 +0000 UTC BP:6431.140509 BF:15.799944 BT:-6335.777526
+		2018-02-07 09:52:29.562 +0000 UTC SP:6497.130000 SF:0.000000 ST:6497.130000
+
+	buy: 10818410
+	buy: 11650766
+	Sell: 11661389
+	*/
 	for _, tx := range paired {
+
+		if tx.BoughtTotal == -6335.777526 {
+			fmt.Println("")
+		}
 
 		fmt.Printf(
 			"[%s] %s %f (Earned: %f)\n%s BP:%f BF:%f BT:%f\n%s SP:%f SF:%f ST:%f\n",
