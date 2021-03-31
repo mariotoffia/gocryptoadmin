@@ -1,6 +1,7 @@
 package txprocessors
 
 import (
+	"sort"
 	"time"
 
 	"github.com/ahmetb/go-linq/v3"
@@ -99,6 +100,10 @@ func PairBuySell(
 		}
 
 	}
+
+	sort.Slice(paired, func(i, j int) bool {
+		return paired[i].BoughtAt.Before(paired[j].BoughtAt)
+	})
 
 	return
 }
