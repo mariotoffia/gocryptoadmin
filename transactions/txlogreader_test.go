@@ -59,6 +59,29 @@ default,382593,XLM-EUR,SELL,2019-06-26T13:35:46.772Z,439.00000000,XLM,0.11375,0.
 	fmt.Println(len(tx))
 }
 
+func TestCoinbasedFileTxLogShallBeOrdered(t *testing.T) {
+
+	entries := NewTxLogReader().
+		UseDir("../data").
+		IgnoreUnknownFiles().
+		UseWindowSize(6*60*60 /*6h*/).
+		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
+		Read()
+
+	for _, tx := range entries {
+
+		fmt.Printf(
+			"[%s:%d] %s %s %s  [ID:%s]\n S:%f  F:%f  T:%f P:%f\nGS:%f GF:%f GT:%f\n",
+			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.Asset, tx.ID,
+			tx.Size, tx.Fee, tx.Total, tx.Price,
+			tx.GrpSize, tx.GrpFee, tx.GrpTotal,
+		)
+
+	}
+
+	fmt.Println(len(entries))
+}
+
 func TestWeightedPrice(t *testing.T) {
 
 	entries := NewTxLogReader().
@@ -116,8 +139,8 @@ func TestPairedBuySell(t *testing.T) {
 	for _, tx := range paired {
 
 		fmt.Printf(
-			"[%s] %s %s %f (Earned: %f)\n%s BP:%f BF:%f BT:%f\n%s SP:%f SF:%f ST:%f\n",
-			tx.Exchange, tx.Asset, tx.Unit, tx.Size, utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 2),
+			"[%s] %s %f (Earned: %f)\n%s BP:%f BF:%f BT:%f\n%s SP:%f SF:%f ST:%f\n",
+			tx.Exchange, tx.Asset, tx.Size, utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 2),
 			tx.BoughtAt.String(), tx.BoughtPrice, tx.BoughtFee, tx.BoughtTotal,
 			tx.SoldAt.String(), tx.SoldPrice, tx.SoldFee, tx.SoldTotal,
 		)
@@ -129,9 +152,9 @@ func TestPairedBuySell(t *testing.T) {
 	for _, tx := range unpaired {
 
 		fmt.Printf(
-			"[%s] %s %s %s %s Size: %f Price: %f Fee: %f Total: %f [%s]\n",
+			"[%s] %s %s %s %s Size: %f Price: %f Fee: %f Total: %f \n",
 			tx.Exchange, tx.CreatedAt, tx.Side, tx.Asset, tx.Unit, tx.Size,
-			tx.Price, tx.Fee, tx.Total, tx.CostUnit,
+			tx.Price, tx.Fee, tx.Total,
 		)
 
 	}

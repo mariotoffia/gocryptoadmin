@@ -129,7 +129,7 @@ func matchBuyWithSell(
 
 	if size > sell.Size {
 		// Split last buy into two
-		pushme, pairme := splitTxBySize(size-sell.Size, *buy)
+		pushme, pairme := splitTxBySize(sell.Size-(size-buy.Size), *buy)
 
 		buyqueue.PushFront(&pushme)
 
@@ -139,7 +139,7 @@ func matchBuyWithSell(
 	}
 
 	// sell is still larger than buy -> split sell and add it to unpaired
-	remainder, split := splitTxBySize(sell.Size, sell)
+	remainder, split := splitTxBySize(size, sell)
 
 	return createPairedTx(split, buys), &remainder
 
