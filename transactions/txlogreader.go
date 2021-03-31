@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -150,30 +151,30 @@ func logReaderNameFromFileName(name string) string {
 func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Transaction {
 
 	sort.Slice(logs, func(i, j int) bool {
-		/*
-			if logs[i].CreatedAt.Equal(logs[j].CreatedAt) {
 
-				if logs[i].Exchange == logs[j].Exchange {
+		if logs[i].CreatedAt.Equal(logs[j].CreatedAt) {
 
-					if logs[i].Exchange == "coinbase-pro" &&
-						logs[i].Asset == logs[j].Asset {
+			if logs[i].Exchange == logs[j].Exchange {
 
-						li, err := strconv.ParseInt(logs[i].ID, 10, 64)
-						if err != nil {
-							panic(err)
-						}
+				if logs[i].Exchange == "coinbase-pro" &&
+					logs[i].Asset == logs[j].Asset {
 
-						lj, err := strconv.ParseInt(logs[j].ID, 10, 64)
-						if err != nil {
-							panic(err)
-						}
-
-						return li < lj
-
+					li, err := strconv.ParseInt(logs[i].ID, 10, 64)
+					if err != nil {
+						panic(err)
 					}
-				}
 
-			}*/
+					lj, err := strconv.ParseInt(logs[j].ID, 10, 64)
+					if err != nil {
+						panic(err)
+					}
+
+					return li < lj
+
+				}
+			}
+
+		}
 
 		return logs[i].CreatedAt.Before(logs[j].CreatedAt)
 	})
