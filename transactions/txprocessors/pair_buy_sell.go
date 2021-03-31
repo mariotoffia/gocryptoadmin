@@ -1,7 +1,6 @@
 package txprocessors
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/ahmetb/go-linq/v3"
@@ -73,25 +72,30 @@ func PairBuySell(
 				}
 
 				if buy.Size > tx.Size {
-
 					// Split buy into two
-					pushme, pairme := splitBuy(tx, *buy)
+					pushme, pairme := splitTxBySize(tx.Size, *buy)
 
 					buyqueue.PushFront(&pushme)
 					paired = append(paired, createPairedTx(tx, []txcommon.Transaction{pairme}))
-
 					continue
 				}
 
-				if buy.Size < tx.Size {
-					return
-					// TODO: get all needed buys
-					/*for buyqueue.IsEmpty() {
-					}*/
+				// buy.Size < tx.Size
+				add, reminder := matchBuyWithSell(tx, buy, &buyqueue)
+
+				if reminder != nil {
+					unpaired = append(unpaired, *reminder)
 				}
+
+				paired = append(paired, add)
 
 			} // for _, tx := range group
 
+			for !buyqueue.IsEmpty() {
+
+				unpaired = append(unpaired, *buyqueue.Pop())
+
+			}
 		}
 
 	}
@@ -99,31 +103,73 @@ func PairBuySell(
 	return
 }
 
-func splitBuy(
+func matchBuyWithSell(
 	sell txcommon.Transaction,
-	buy txcommon.Transaction) (pushme txcommon.Transaction, pairme txcommon.Transaction) {
+	buy *txcommon.Transaction,
+	buyqueue *txcommon.TxQueue) ( /*paired*/ PairedTransaction /*remainder*/, *txcommon.Transaction) {
 
-	pushme = buy
-	pairme = buy
-	factor := utils.ToFixed(sell.Size/buy.Size, 8)
+	buys := []txcommon.Transaction{*buy}
+	size := buy.Size
 
-	fmt.Printf("must match %f = %f", utils.ToFixed(factor*buy.Size, 8), utils.ToFixed(buy.Size-sell.Size, 8))
+	// get all needed buys
+	for !buyqueue.IsEmpty() && size < sell.Size {
 
-	pushme.Size = utils.ToFixed(buy.Size-sell.Size, 8)
-	pushme.Fee = utils.ToFixed(pushme.Fee*(1-factor), 8)
-	pushme.Price = utils.ToFixed(pushme.Price*(1-factor), 8)
-	pushme.Total = utils.ToFixed(pushme.Total*(1-factor), 8)
-	pushme.GrpFee = pushme.Fee
-	pushme.GrpSize = pushme.Size
-	pushme.GrpTotal = pushme.Total
+		buy = buyqueue.Pop()
+		size = utils.ToFixed(size+buy.Size, 8)
 
-	pairme.Size = sell.Size
-	pairme.Fee = utils.ToFixed(pairme.Fee*factor, 8)
-	pairme.Price *= utils.ToFixed(pairme.Price*factor, 8)
-	pairme.Total *= utils.ToFixed(pairme.Total*factor, 8)
-	pairme.GrpFee = pairme.Fee
-	pairme.GrpSize = pairme.Size
-	pairme.GrpTotal = pairme.Total
+		if size <= sell.Size {
+			buys = append(buys, *buy)
+		}
+
+	}
+
+	if size == sell.Size {
+		return createPairedTx(sell, buys), nil
+	}
+
+	if size > sell.Size {
+		// Split last buy into two
+		pushme, pairme := splitTxBySize(size-sell.Size, *buy)
+
+		buyqueue.PushFront(&pushme)
+
+		buys = append(buys, pairme)
+		return createPairedTx(sell, buys), nil
+
+	}
+
+	// sell is still larger than buy -> split sell and add it to unpaired
+	remainder, split := splitTxBySize(sell.Size, sell)
+
+	return createPairedTx(split, buys), &remainder
+
+}
+
+// splitTxBySize will split the in param _tx_ to two parts where the _split_ is the _splitSize_
+// and the _remainder_ is the left over the _split_.
+func splitTxBySize(
+	splitSize float64,
+	tx txcommon.Transaction) (remainder txcommon.Transaction, split txcommon.Transaction) {
+
+	remainder = tx
+	split = tx
+	factor := utils.ToFixed(splitSize/tx.Size, 8)
+
+	remainder.Size = utils.ToFixed(tx.Size-splitSize, 8)
+	remainder.Fee = utils.ToFixed(remainder.Fee*(1-factor), 8)
+	remainder.Price = utils.ToFixed(remainder.Price*(1-factor), 8)
+	remainder.Total = utils.ToFixed(remainder.Total*(1-factor), 8)
+	remainder.GrpFee = remainder.Fee
+	remainder.GrpSize = remainder.Size
+	remainder.GrpTotal = remainder.Total
+
+	split.Size = splitSize
+	split.Fee = utils.ToFixed(split.Fee*factor, 8)
+	split.Price = utils.ToFixed(split.Price*factor, 8)
+	split.Total = utils.ToFixed(split.Total*factor, 8)
+	split.GrpFee = split.Fee
+	split.GrpSize = split.Size
+	split.GrpTotal = split.Total
 
 	return
 }
