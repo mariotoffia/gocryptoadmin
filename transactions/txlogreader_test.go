@@ -163,9 +163,16 @@ func TestEarningsPerYear(t *testing.T) {
 			}).
 			ToSlice(&data)
 
-		fmt.Printf("\nYear: %d\n------------------------------\n", year)
-		fmt.Println("Antal	Namn	Inköpsdatum		Inköpsbelopp	Försäljningsdatum	Försäljningsbelopp	Vinst		Skatt")
-		fmt.Println("------------------------------------------------------------------------------------------------------------------------------")
+		fmt.Printf("\nÅr: %d\n------------------------------\n", year)
+		fmt.Println(
+			"Antal		Namn		Inköpsdatum	Inköpsbelopp	Försäljningsdatum" +
+				"	Försäljningsbelopp	Vinst		Skatt",
+		)
+
+		fmt.Println(
+			"-------------------------------------------------------------------" +
+				"--------------------------------------------------------------------------",
+		)
 
 		totTax := float64(0)
 		tot := float64(0)
@@ -175,7 +182,7 @@ func TestEarningsPerYear(t *testing.T) {
 			tot += utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 8)
 
 			fmt.Printf(
-				"%f\t%s\t%s\t%f\t%s\t\t%f\t\t%f\t%f\n",
+				"%f\t%s\t\t%s\t%f\t%s\t\t%f\t\t%f\t%f\n",
 				tx.Size, tx.Asset,
 				tx.BoughtAt.Format(layout), utils.ToFixed(-tx.BoughtTotal, 2),
 				tx.SoldAt.Format(layout), utils.ToFixed(tx.SoldTotal, 2),
