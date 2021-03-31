@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ahmetb/go-linq/v3"
+	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
 	"github.com/mariotoffia/gocryptoadmin/transactions/txprocessors"
 	"github.com/mariotoffia/gocryptoadmin/transactions/txreaders/coinbasepro"
 	"github.com/stretchr/testify/require"
@@ -82,6 +84,39 @@ func TestWeightedPrice(t *testing.T) {
 			"[%s:%d] %s %s %s Size:%f Price:%f Fee:%f Total:%f\n",
 			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.Asset,
 			tx.Size, tx.Price, tx.Fee, tx.Total,
+		)
+
+	}
+
+	fmt.Printf("original: %d weighted: %d\n", len(entries), len(weighted))
+}
+
+func TestPairedBuySell(t *testing.T) {
+
+	entries := NewTxLogReader().
+		UseDir("../data").
+		IgnoreUnknownFiles().
+		UseWindowSize(6*60*60 /*6h*/).
+		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
+		Read()
+
+	var ltc []txcommon.Transaction
+	linq.From(entries).
+		Where(func(tx interface{}) bool {
+			return tx.(txcommon.Transaction).Asset == "LTC-EUR"
+		}).
+		ToSlice(&ltc)
+
+	weighted := txprocessors.WeightedPrice(ltc)
+	paired, _ := txprocessors.PairBuySell(weighted)
+
+	for _, tx := range paired {
+
+		fmt.Printf(
+			"[%s] %s %s %f\n%s SP:%f SF:%f ST:%f\n%s BP:%f BF:%f BT:%f\n",
+			tx.Exchange, tx.Asset, tx.Unit, tx.Size,
+			tx.SoldAt.String(), tx.SoldPrice, tx.SoldFee, tx.SoldTotal,
+			tx.BoughtAt.String(), tx.BoughtPrice, tx.BoughtFee, tx.BoughtTotal,
 		)
 
 	}
