@@ -16,13 +16,12 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 	type processor struct {
 		next        time.Time
 		groupId     int64
-		intervalAcc txcommon.Accumulate
+		intervalAcc txcommon.GroupAccumulate
 	}
 
 	groupId := int64(0)
 	products := map[string]processor{}
 	lastSide := map[string]txcommon.SideType{}
-	accAsset := map[string]txcommon.Accumulate{}
 
 	for i, tx := range logs {
 
@@ -35,27 +34,18 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 
 			lastSide[tx.Exchange+tx.Asset] = tx.Side
 
-			accAsset[tx.Exchange+tx.Asset] = txcommon.Accumulate{
-				AccSize:  size,
-				AccFee:   tx.Fee,
-				AccTotal: tx.Total,
-			}
-
 			groupId++
 
 			products[tx.Exchange+tx.Asset+string(tx.Side)] = processor{
 				groupId: groupId,
 				next:    tx.CreatedAt.Add(time.Second * lr.secwindow),
-				intervalAcc: txcommon.Accumulate{
-					AccSize:  size,
-					AccFee:   tx.Fee,
-					AccTotal: tx.Total,
+				intervalAcc: txcommon.GroupAccumulate{
+					GrpSize:  size,
+					GrpFee:   tx.Fee,
+					GrpTotal: tx.Total,
 				},
 			}
 
-			logs[i].AccSize = size
-			logs[i].AccTotal = tx.Total
-			logs[i].AccFee = tx.Fee
 			logs[i].GrpSize = size
 			logs[i].GrpTotal = tx.Total
 			logs[i].GrpFee = tx.Fee
@@ -64,18 +54,11 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 			continue
 		}
 
-		// Update asset accumulation properties
-		acc := accAsset[tx.Exchange+tx.Asset]
-		acc.AccSize = acc.AccSize + size
-		acc.AccFee = acc.AccFee + tx.Fee
-		acc.AccTotal = acc.AccTotal + tx.Total
-		accAsset[tx.Exchange+tx.Asset] = acc
-
 		proc := products[tx.Exchange+tx.Asset+string(tx.Side)]
 
-		proc.intervalAcc.AccSize = proc.intervalAcc.AccSize + size
-		proc.intervalAcc.AccTotal = proc.intervalAcc.AccTotal + tx.Cost.Total
-		proc.intervalAcc.AccFee = proc.intervalAcc.AccFee + tx.Cost.Fee
+		proc.intervalAcc.GrpSize = proc.intervalAcc.GrpSize + size
+		proc.intervalAcc.GrpTotal = proc.intervalAcc.GrpTotal + tx.Cost.Total
+		proc.intervalAcc.GrpFee = proc.intervalAcc.GrpFee + tx.Cost.Fee
 
 		if lastSide[tx.Exchange+tx.Asset] == tx.Side &&
 			tx.CreatedAt.Before(proc.next) {
@@ -85,22 +68,19 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 			// Next slice
 			groupId++
 			proc.groupId = groupId
-			proc.intervalAcc.AccSize = size
-			proc.intervalAcc.AccFee = tx.Fee
-			proc.intervalAcc.AccTotal = tx.Total
+			proc.intervalAcc.GrpSize = size
+			proc.intervalAcc.GrpFee = tx.Fee
+			proc.intervalAcc.GrpTotal = tx.Total
 			proc.next = tx.CreatedAt.Add(time.Second * lr.secwindow)
 
 			lastSide[tx.Exchange+tx.Asset] = tx.Side // Might have changed
 
 		}
 
-		logs[i].GrpSize = proc.intervalAcc.AccSize
-		logs[i].GrpFee = proc.intervalAcc.AccFee
-		logs[i].GrpTotal = proc.intervalAcc.AccTotal
+		logs[i].GrpSize = proc.intervalAcc.GrpSize
+		logs[i].GrpFee = proc.intervalAcc.GrpFee
+		logs[i].GrpTotal = proc.intervalAcc.GrpTotal
 		logs[i].GroupID = proc.groupId
-		logs[i].AccSize = acc.AccSize
-		logs[i].AccTotal = acc.AccTotal
-		logs[i].AccFee = acc.AccFee
 
 		products[tx.Exchange+tx.Asset+string(tx.Side)] = proc
 

@@ -29,18 +29,10 @@ type Product struct {
 	Unit  string  `csv:"sizeunit" json:"sizeunit"`
 }
 
-// Accumulate is calculated by the transaction.ProccessAccumulation function
-// of a selection of `Transaction`
-//
-type Accumulate struct {
-	AccSize  float64 `csv:"accsize" json:"accsize"`
-	AccTotal float64 `csv:"acctotal" json:"acctotal"`
-	AccFee   float64 `csv:"accfee" json:"accfee"`
-}
-
 // GroupAccumulate is calculated by the `transaction.preProcess` function
 // of a selection of `Transaction`
 //
+// It represents a accumulation within the same `GroupID` (hence local).
 type GroupAccumulate struct {
 	GrpSize  float64 `csv:"grpsize" json:"grpsize"`
 	GrpTotal float64 `csv:"grptotal" json:"grptotal"`
@@ -56,7 +48,6 @@ type Transaction struct {
 	CreatedAt time.Time `csv:"created" json:"created"`
 	Product
 	Cost
-	Accumulate
 	GroupAccumulate
 }
 

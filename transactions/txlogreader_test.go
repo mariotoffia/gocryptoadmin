@@ -68,11 +68,10 @@ func TestProcessing(t *testing.T) {
 	for _, tx := range ltc {
 
 		fmt.Printf(
-			"[%s:%d] %s %s %s \n S:%f  F:%f  T:%f P:%f\nGS:%f GF:%f GT:%f\nAS:%f AF:%f AT:%f\n",
+			"[%s:%d] %s %s %s \n S:%f  F:%f  T:%f P:%f\nGS:%f GF:%f GT:%f\n",
 			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.Asset,
 			tx.Size, tx.Fee, tx.Total, tx.Price,
 			tx.GrpSize, tx.GrpFee, tx.GrpTotal,
-			tx.AccSize, tx.AccFee, tx.AccTotal,
 		)
 
 	}
