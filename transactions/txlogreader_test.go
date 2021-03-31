@@ -7,9 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ahmetb/go-linq/v3"
-	"github.com/mariotoffia/gocryptoadmin/transactions/coinbasepro"
-	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
+	"github.com/mariotoffia/gocryptoadmin/transactions/txprocessors"
+	"github.com/mariotoffia/gocryptoadmin/transactions/txreaders/coinbasepro"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,28 +43,7 @@ default,382593,XLM-EUR,SELL,2019-06-26T13:35:46.772Z,439.00000000,XLM,0.11375,0.
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		Read()
 
-	fmt.Println(tx[0].ToCSVEntry())
-	fmt.Println(len(tx))
-
-}
-
-func TestProcessing(t *testing.T) {
-
-	entries := NewTxLogReader().
-		UseDir("../data").
-		IgnoreUnknownFiles().
-		UseWindowSize(6*60*60 /*6h*/).
-		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
-		Read()
-
-	var ltc []txcommon.Transaction
-	linq.From(entries).
-		Where(func(tx interface{}) bool {
-			return tx.(txcommon.Transaction).Asset == "LTC-EUR"
-		}).
-		ToSlice(&ltc)
-
-	for _, tx := range ltc {
+	for _, tx := range tx {
 
 		fmt.Printf(
 			"[%s:%d] %s %s %s \n S:%f  F:%f  T:%f P:%f\nGS:%f GF:%f GT:%f\n",
@@ -76,5 +54,37 @@ func TestProcessing(t *testing.T) {
 
 	}
 
-	fmt.Println(len(entries))
+	fmt.Println(len(tx))
+}
+
+func TestWeightedPrice(t *testing.T) {
+
+	entries := NewTxLogReader().
+		UseDir("../data").
+		IgnoreUnknownFiles().
+		UseWindowSize(6*60*60 /*6h*/).
+		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
+		Read()
+
+		/*	var ltc []txcommon.Transaction
+			linq.From(entries).
+				Where(func(tx interface{}) bool {
+					return tx.(txcommon.Transaction).Asset == "LTC-EUR"
+				}).
+				ToSlice(&ltc)
+		*/
+
+	weighted := txprocessors.WeightedPrice(entries)
+
+	for _, tx := range weighted {
+
+		fmt.Printf(
+			"[%s:%d] %s %s %s Size:%f Price:%f Fee:%f Total:%f\n",
+			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.Asset,
+			tx.Size, tx.Price, tx.Fee, tx.Total,
+		)
+
+	}
+
+	fmt.Printf("original: %d weighted: %d\n", len(entries), len(weighted))
 }

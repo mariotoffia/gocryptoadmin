@@ -39,6 +39,10 @@ type GroupAccumulate struct {
 	GrpFee   float64 `csv:"grpfee" json:"grpfee"`
 }
 
+// Transaction represents a single transaction
+//
+// NOTE: The `Total` and `GrpTotal` (`Price` * `Size`) - `Fee` on both buy and sell.
+// the only difference is that the buy is (-`Price` * `Size`) - `Fee`.
 type Transaction struct {
 	Portfolio string    `csv:"portfolio" json:"portfolio"`
 	ID        string    `csv:"id" json:"id"`

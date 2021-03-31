@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -143,4 +144,81 @@ func (lr *TxLogReaderImpl) logReaderFromFileName(name string) txcommon.Transacti
 
 func logReaderNameFromFileName(name string) string {
 	return strings.SplitN(name, "_", 2)[0]
+}
+
+func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Transaction {
+
+	sort.Slice(logs, func(i, j int) bool {
+		return logs[i].CreatedAt.Before(logs[j].CreatedAt)
+	})
+
+	type processor struct {
+		next        time.Time
+		groupId     int64
+		intervalAcc txcommon.GroupAccumulate
+	}
+
+	groupId := int64(0)
+	products := map[string]processor{}
+	lastSide := map[string]txcommon.SideType{}
+
+	for i, tx := range logs {
+
+		if _, ok := products[tx.Exchange+tx.Asset+string(tx.Side)]; !ok {
+
+			lastSide[tx.Exchange+tx.Asset] = tx.Side
+
+			groupId++
+
+			products[tx.Exchange+tx.Asset+string(tx.Side)] = processor{
+				groupId: groupId,
+				next:    tx.CreatedAt.Add(time.Second * lr.secwindow),
+				intervalAcc: txcommon.GroupAccumulate{
+					GrpSize:  tx.Size,
+					GrpFee:   tx.Fee,
+					GrpTotal: tx.Total,
+				},
+			}
+
+			logs[i].GrpSize = tx.Size
+			logs[i].GrpTotal = tx.Total
+			logs[i].GrpFee = tx.Fee
+			logs[i].GroupID = groupId
+
+			continue
+		}
+
+		proc := products[tx.Exchange+tx.Asset+string(tx.Side)]
+
+		proc.intervalAcc.GrpSize = proc.intervalAcc.GrpSize + tx.Size
+		proc.intervalAcc.GrpTotal = proc.intervalAcc.GrpTotal + tx.Cost.Total
+		proc.intervalAcc.GrpFee = proc.intervalAcc.GrpFee + tx.Cost.Fee
+
+		if lastSide[tx.Exchange+tx.Asset] == tx.Side &&
+			tx.CreatedAt.Before(proc.next) {
+
+		} else {
+
+			// Next slice
+			groupId++
+			proc.groupId = groupId
+			proc.intervalAcc.GrpSize = tx.Size
+			proc.intervalAcc.GrpFee = tx.Fee
+			proc.intervalAcc.GrpTotal = tx.Total
+			proc.next = tx.CreatedAt.Add(time.Second * lr.secwindow)
+
+			lastSide[tx.Exchange+tx.Asset] = tx.Side // Might have changed
+
+		}
+
+		logs[i].GrpSize = proc.intervalAcc.GrpSize
+		logs[i].GrpFee = proc.intervalAcc.GrpFee
+		logs[i].GrpTotal = proc.intervalAcc.GrpTotal
+		logs[i].GroupID = proc.groupId
+
+		products[tx.Exchange+tx.Asset+string(tx.Side)] = proc
+
+	}
+
+	return logs
 }

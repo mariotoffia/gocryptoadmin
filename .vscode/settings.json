@@ -12,6 +12,7 @@
         "stretchr",
         "txcommon",
         "txgroup",
+        "txprocessors",
         "txsell"
     ]
 }
