@@ -5,18 +5,18 @@ import (
 	"time"
 
 	"github.com/jszwec/csvutil"
-	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
+	"github.com/mariotoffia/gocryptoadmin/common"
 )
 
 // cbp implements the `TransactionLogReader` interface
 type cbp struct {
 }
 
-func NewTransactionLogReader() txcommon.TransactionLogReader {
+func NewTransactionLogReader() common.TransactionLogReader {
 	return &cbp{}
 }
 
-func (c *cbp) Unmarshal(data []byte) []txcommon.Transaction {
+func (c *cbp) Unmarshal(data []byte) []common.Transaction {
 
 	var v []CbpTransaction
 	err := csvutil.Unmarshal(data, &v)
@@ -25,7 +25,7 @@ func (c *cbp) Unmarshal(data []byte) []txcommon.Transaction {
 		panic(err)
 	}
 
-	tx := []txcommon.Transaction{}
+	tx := []common.Transaction{}
 
 	for i := range v {
 		tx = append(tx, c.Transform(v[i]))
@@ -36,22 +36,22 @@ func (c *cbp) Unmarshal(data []byte) []txcommon.Transaction {
 
 // Transform will get the instance pointer returned from `Entry`
 // and is expected to transform to a `Transaction`
-func (c *cbp) Transform(entry interface{}) txcommon.Transaction {
+func (c *cbp) Transform(entry interface{}) common.Transaction {
 
 	if v, ok := entry.(CbpTransaction); ok {
 
-		return txcommon.Transaction{
+		return common.Transaction{
 			Portfolio: v.Portfolio,
 			ID:        v.ID,
 			Exchange:  "coinbase-pro",
 			Side:      v.Side,
 			CreatedAt: v.CreatedAt,
-			Product: txcommon.Product{
+			Product: common.Product{
 				AssetPair: v.Product,
 				Size:      v.Size,
 				Unit:      v.Unit,
 			},
-			Cost: txcommon.Cost{
+			Cost: common.Cost{
 				Price:    v.Price,
 				Fee:      v.Fee,
 				Total:    v.Total,
@@ -82,10 +82,10 @@ type CbpProduct struct {
 }
 
 type CbpTransaction struct {
-	Portfolio string            `csv:"portfolio" json:"portfolio"`
-	ID        string            `csv:"trade id" json:"id"`
-	Side      txcommon.SideType `csv:"side" json:"side"`
-	CreatedAt time.Time         `csv:"created at" json:"created"`
+	Portfolio string          `csv:"portfolio" json:"portfolio"`
+	ID        string          `csv:"trade id" json:"id"`
+	Side      common.SideType `csv:"side" json:"side"`
+	CreatedAt time.Time       `csv:"created at" json:"created"`
 	CbpProduct
 	CbpCost
 }

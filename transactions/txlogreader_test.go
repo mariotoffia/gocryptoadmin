@@ -91,10 +91,10 @@ func TestWeightedPrice(t *testing.T) {
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		Read()
 
-		/*	var ltc []txcommon.Transaction
+		/*	var ltc []common.Transaction
 			linq.From(entries).
 				Where(func(tx interface{}) bool {
-					return tx.(txcommon.Transaction).Asset == "LTC-EUR"
+					return tx.(common.Transaction).Asset == "LTC-EUR"
 				}).
 				ToSlice(&ltc)
 		*/
@@ -124,11 +124,11 @@ func TestPairedBuySell(t *testing.T) {
 		Read()
 
 		/*
-			var ltc []txcommon.Transaction
+			var ltc []common.Transaction
 
 			linq.From(entries).
 				Where(func(tx interface{}) bool {
-					return tx.(txcommon.Transaction).Asset == "LTC-EUR"
+					return tx.(common.Transaction).Asset == "LTC-EUR"
 				}).
 				ToSlice(&ltc)*/
 	ltc := entries

@@ -1,4 +1,4 @@
-package txcommon
+package common
 
 type TxQueue []*Transaction
 

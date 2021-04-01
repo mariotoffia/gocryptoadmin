@@ -2,25 +2,25 @@ package txprocessors
 
 import (
 	"github.com/ahmetb/go-linq/v3"
-	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
+	"github.com/mariotoffia/gocryptoadmin/common"
 	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
-func WeightedPrice(logs []txcommon.Transaction) []txcommon.Transaction {
+func WeightedPrice(logs []common.Transaction) []common.Transaction {
 
-	weighted := []txcommon.Transaction{}
+	weighted := []common.Transaction{}
 
 	max := linq.From(logs).Select(func(tx interface{}) interface{} {
-		return tx.(txcommon.Transaction).GroupID
+		return tx.(common.Transaction).GroupID
 	}).Max().(int64)
 
 	for i := int64(1); i < max; i++ {
 
-		group := []txcommon.Transaction{}
+		group := []common.Transaction{}
 
 		linq.From(logs).
 			Where(func(tx interface{}) bool {
-				return tx.(txcommon.Transaction).GroupID == i
+				return tx.(common.Transaction).GroupID == i
 			}).
 			ToSlice(&group)
 
@@ -45,7 +45,7 @@ func WeightedPrice(logs []txcommon.Transaction) []txcommon.Transaction {
 		tx.Fee = utils.ToFixed(fee, 8)
 		tx.Price = utils.ToFixed(totalPrice/size, 8)
 
-		if tx.Side == txcommon.SideTypeBuy {
+		if tx.Side == common.SideTypeBuy {
 			tx.Total = utils.ToFixed(-totalPrice-fee, 8)
 		} else {
 			tx.Total = utils.ToFixed(totalPrice-fee, 8)

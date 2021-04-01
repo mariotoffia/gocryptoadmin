@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
+	"github.com/mariotoffia/gocryptoadmin/common"
 	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
 type TxLogReaderImpl struct {
-	readers       map[string]txcommon.TransactionLogReader
+	readers       map[string]common.TransactionLogReader
 	dir           string
 	recursive     bool
 	ignoreUnknown bool
@@ -24,7 +24,7 @@ type TxLogReaderImpl struct {
 func NewTxLogReader() *TxLogReaderImpl {
 
 	return &TxLogReaderImpl{
-		readers:   map[string]txcommon.TransactionLogReader{},
+		readers:   map[string]common.TransactionLogReader{},
 		dir:       ".",
 		recursive: false,
 		secwindow: time.Duration(5 * 60),
@@ -59,22 +59,22 @@ func (lr *TxLogReaderImpl) UseDir(dir string) *TxLogReaderImpl {
 
 func (lr *TxLogReaderImpl) RegisterReader(
 	name string,
-	reader txcommon.TransactionLogReader) *TxLogReaderImpl {
+	reader common.TransactionLogReader) *TxLogReaderImpl {
 
 	lr.readers[name] = reader
 	return lr
 
 }
 
-func (lr *TxLogReaderImpl) Read() []txcommon.Transaction {
+func (lr *TxLogReaderImpl) Read() []common.Transaction {
 
 	tx := lr.read(lr.dir, lr.recursive)
 	return lr.preProcess(tx)
 }
 
-func (lr *TxLogReaderImpl) read(directory string, recursive bool) []txcommon.Transaction {
+func (lr *TxLogReaderImpl) read(directory string, recursive bool) []common.Transaction {
 
-	tx := []txcommon.Transaction{}
+	tx := []common.Transaction{}
 
 	if !filepath.IsAbs(directory) {
 
@@ -127,7 +127,7 @@ func (lr *TxLogReaderImpl) read(directory string, recursive bool) []txcommon.Tra
 
 }
 
-func (lr *TxLogReaderImpl) logReaderFromFileName(name string) txcommon.TransactionLogReader {
+func (lr *TxLogReaderImpl) logReaderFromFileName(name string) common.TransactionLogReader {
 
 	if lr, ok := lr.readers[logReaderNameFromFileName(name)]; ok {
 		return lr
@@ -148,7 +148,7 @@ func logReaderNameFromFileName(name string) string {
 	return strings.SplitN(name, "_", 2)[0]
 }
 
-func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Transaction {
+func (lr *TxLogReaderImpl) preProcess(logs []common.Transaction) []common.Transaction {
 
 	sort.Slice(logs, func(i, j int) bool {
 
@@ -182,12 +182,12 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 	type processor struct {
 		next        time.Time
 		groupId     int64
-		intervalAcc txcommon.GroupAccumulate
+		intervalAcc common.GroupAccumulate
 	}
 
 	groupId := int64(0)
 	products := map[string]processor{}
-	lastSide := map[string]txcommon.SideType{}
+	lastSide := map[string]common.SideType{}
 
 	for i, tx := range logs {
 
@@ -200,7 +200,7 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 			products[tx.Exchange+tx.AssetPair+string(tx.Side)] = processor{
 				groupId: groupId,
 				next:    tx.CreatedAt.Add(time.Second * lr.secwindow),
-				intervalAcc: txcommon.GroupAccumulate{
+				intervalAcc: common.GroupAccumulate{
 					GrpSize:  tx.Size,
 					GrpFee:   tx.Fee,
 					GrpTotal: tx.Total,

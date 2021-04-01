@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/ahmetb/go-linq/v3"
-	"github.com/mariotoffia/gocryptoadmin/transactions/txcommon"
+	"github.com/mariotoffia/gocryptoadmin/common"
 	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
 type PairedTransaction struct {
-	Sell txcommon.Transaction
-	Buy  []txcommon.Transaction
+	Sell common.Transaction
+	Buy  []common.Transaction
 
 	Exchange    string    `csv:"exchange" json:"exchange"`
 	AssetPair   string    `csv:"asset pair" json:"assetpair"`
@@ -29,32 +29,32 @@ type PairedTransaction struct {
 }
 
 func PairBuySell(
-	logs []txcommon.Transaction) (paired []PairedTransaction, unpaired []txcommon.Transaction) {
+	logs []common.Transaction) (paired []PairedTransaction, unpaired []common.Transaction) {
 
 	paired = []PairedTransaction{}
 
-	exchanges := txcommon.Exchanges(logs)
-	assets := txcommon.Assets(logs)
-	unpaired = []txcommon.Transaction{}
+	exchanges := common.Exchanges(logs)
+	assets := common.Assets(logs)
+	unpaired = []common.Transaction{}
 
 	for _, exchange := range exchanges {
 
 		for _, asset := range assets {
 
-			group := []txcommon.Transaction{}
+			group := []common.Transaction{}
 
 			linq.From(logs).
 				Where(func(tx interface{}) bool {
-					return tx.(txcommon.Transaction).Exchange == exchange &&
-						tx.(txcommon.Transaction).AssetPair == asset
+					return tx.(common.Transaction).Exchange == exchange &&
+						tx.(common.Transaction).AssetPair == asset
 				}).
 				ToSlice(&group)
 
-			buyqueue := txcommon.TxQueue{}
+			buyqueue := common.TxQueue{}
 
 			for i, tx := range group {
 
-				if tx.Side == txcommon.SideTypeBuy {
+				if tx.Side == common.SideTypeBuy {
 					buyqueue.Push(&group[i])
 					continue
 				}
@@ -69,7 +69,7 @@ func PairBuySell(
 				buy := buyqueue.Pop()
 
 				if buy.Size == tx.Size {
-					paired = append(paired, createPairedTx(tx, []txcommon.Transaction{*buy}))
+					paired = append(paired, createPairedTx(tx, []common.Transaction{*buy}))
 					continue
 				}
 
@@ -78,7 +78,7 @@ func PairBuySell(
 					pushme, pairme := splitTxBySize(tx.Size, *buy)
 
 					buyqueue.PushFront(&pushme)
-					paired = append(paired, createPairedTx(tx, []txcommon.Transaction{pairme}))
+					paired = append(paired, createPairedTx(tx, []common.Transaction{pairme}))
 					continue
 				}
 
@@ -110,11 +110,11 @@ func PairBuySell(
 }
 
 func matchBuyWithSell(
-	sell txcommon.Transaction,
-	buy *txcommon.Transaction,
-	buyqueue *txcommon.TxQueue) ( /*paired*/ PairedTransaction /*remainder*/, *txcommon.Transaction) {
+	sell common.Transaction,
+	buy *common.Transaction,
+	buyqueue *common.TxQueue) ( /*paired*/ PairedTransaction /*remainder*/, *common.Transaction) {
 
-	buys := []txcommon.Transaction{*buy}
+	buys := []common.Transaction{*buy}
 	size := buy.Size
 
 	// get all needed buys
@@ -156,7 +156,7 @@ func matchBuyWithSell(
 // and the _remainder_ is the left over the _split_.
 func splitTxBySize(
 	splitSize float64,
-	tx txcommon.Transaction) (remainder txcommon.Transaction, split txcommon.Transaction) {
+	tx common.Transaction) (remainder common.Transaction, split common.Transaction) {
 
 	remainder = tx
 	split = tx
@@ -181,7 +181,7 @@ func splitTxBySize(
 	return
 }
 
-func createPairedTx(sell txcommon.Transaction, buy []txcommon.Transaction) PairedTransaction {
+func createPairedTx(sell common.Transaction, buy []common.Transaction) PairedTransaction {
 
 	pt := PairedTransaction{
 		Exchange:  sell.Exchange,
