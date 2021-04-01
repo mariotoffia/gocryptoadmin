@@ -1,6 +1,7 @@
 package txprocessors
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -14,17 +15,17 @@ type PairedTransaction struct {
 	Buy  []txcommon.Transaction
 
 	Exchange    string    `csv:"exchange" json:"exchange"`
-	Asset       string    `csv:"product" json:"product"`
+	AssetPair   string    `csv:"asset pair" json:"assetpair"`
 	Unit        string    `csv:"sizeunit" json:"sizeunit"`
 	Size        float64   `csv:"size" json:"size"`
 	SoldAt      time.Time `csv:"sold" json:"sold"`
-	SoldPrice   float64   `csv:"sold price" json:"sold price"`
-	SoldFee     float64   `csv:"sold fee" json:"sold fee"`
-	SoldTotal   float64   `csv:"sold total" json:"sold total"`
+	SoldPrice   float64   `csv:"sold price" json:"soldprice"`
+	SoldFee     float64   `csv:"sold fee" json:"soldfee"`
+	SoldTotal   float64   `csv:"sold total" json:"soldtotal"`
 	BoughtAt    time.Time `csv:"bought" json:"bought"`
-	BoughtPrice float64   `csv:"bought price" json:"bought price"`
-	BoughtFee   float64   `csv:"bought fee" json:"bought fee"`
-	BoughtTotal float64   `csv:"bought total" json:"bought total"`
+	BoughtPrice float64   `csv:"bought price" json:"boughtprice"`
+	BoughtFee   float64   `csv:"bought fee" json:"boughtfee"`
+	BoughtTotal float64   `csv:"bought total" json:"boughttotal"`
 }
 
 func PairBuySell(
@@ -45,7 +46,7 @@ func PairBuySell(
 			linq.From(logs).
 				Where(func(tx interface{}) bool {
 					return tx.(txcommon.Transaction).Exchange == exchange &&
-						tx.(txcommon.Transaction).Asset == asset
+						tx.(txcommon.Transaction).AssetPair == asset
 				}).
 				ToSlice(&group)
 
@@ -81,7 +82,7 @@ func PairBuySell(
 					continue
 				}
 
-				// buy.Size < tx.Size
+				// buy.Size < tx.Size -> iterate all buys
 				add, reminder := matchBuyWithSell(tx, buy, &buyqueue)
 
 				if reminder != nil {
@@ -144,6 +145,7 @@ func matchBuyWithSell(
 	}
 
 	// sell is still larger than buy -> split sell and add it to unpaired
+	fmt.Println("WARNING: This is probably an error!!!??? TODO: need to return matches and reason!")
 	remainder, split := splitTxBySize(size, sell)
 
 	return createPairedTx(split, buys), &remainder
@@ -183,7 +185,7 @@ func createPairedTx(sell txcommon.Transaction, buy []txcommon.Transaction) Paire
 
 	pt := PairedTransaction{
 		Exchange:  sell.Exchange,
-		Asset:     sell.Asset,
+		AssetPair: sell.AssetPair,
 		Sell:      sell,
 		Unit:      sell.Unit,
 		Buy:       buy,

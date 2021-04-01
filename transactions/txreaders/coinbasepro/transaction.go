@@ -47,9 +47,9 @@ func (c *cbp) Transform(entry interface{}) txcommon.Transaction {
 			Side:      v.Side,
 			CreatedAt: v.CreatedAt,
 			Product: txcommon.Product{
-				Asset: v.Product,
-				Size:  v.Size,
-				Unit:  v.Unit,
+				AssetPair: v.Product,
+				Size:      v.Size,
+				Unit:      v.Unit,
 			},
 			Cost: txcommon.Cost{
 				Price:    v.Price,

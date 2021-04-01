@@ -49,7 +49,7 @@ default,382593,XLM-EUR,SELL,2019-06-26T13:35:46.772Z,439.00000000,XLM,0.11375,0.
 
 		fmt.Printf(
 			"[%s:%d] %s %s %s \n S:%f  F:%f  T:%f P:%f\nGS:%f GF:%f GT:%f\n",
-			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.Asset,
+			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.AssetPair,
 			tx.Size, tx.Fee, tx.Total, tx.Price,
 			tx.GrpSize, tx.GrpFee, tx.GrpTotal,
 		)
@@ -72,7 +72,7 @@ func TestCoinbasedFileTxLogShallBeOrdered(t *testing.T) {
 
 		fmt.Printf(
 			"[%s:%d] %s %s %s  [ID:%s]\n S:%f  F:%f  T:%f P:%f\nGS:%f GF:%f GT:%f\n",
-			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.Asset, tx.ID,
+			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.AssetPair, tx.ID,
 			tx.Size, tx.Fee, tx.Total, tx.Price,
 			tx.GrpSize, tx.GrpFee, tx.GrpTotal,
 		)
@@ -105,7 +105,7 @@ func TestWeightedPrice(t *testing.T) {
 
 		fmt.Printf(
 			"[%s:%d] %s %s %s Size:%f Price:%f Fee:%f Total:%f\n",
-			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.Asset,
+			tx.Exchange, tx.GroupID, tx.CreatedAt.String(), tx.Side, tx.AssetPair,
 			tx.Size, tx.Price, tx.Fee, tx.Total,
 		)
 
@@ -153,7 +153,7 @@ func TestPairedBuySell(t *testing.T) {
 
 		fmt.Printf(
 			"[%s] %s %f (Earned: %f)\n%s BP:%f BF:%f BT:%f\n%s SP:%f SF:%f ST:%f\n",
-			tx.Exchange, tx.Asset, tx.Size, utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 2),
+			tx.Exchange, tx.AssetPair, tx.Size, utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 2),
 			tx.BoughtAt.String(), tx.BoughtPrice, tx.BoughtFee, tx.BoughtTotal,
 			tx.SoldAt.String(), tx.SoldPrice, tx.SoldFee, tx.SoldTotal,
 		)
@@ -166,7 +166,7 @@ func TestPairedBuySell(t *testing.T) {
 
 		fmt.Printf(
 			"[%s] %s %s %s %s Size: %f Price: %f Fee: %f Total: %f \n",
-			tx.Exchange, tx.CreatedAt, tx.Side, tx.Asset, tx.Unit, tx.Size,
+			tx.Exchange, tx.CreatedAt, tx.Side, tx.AssetPair, tx.Unit, tx.Size,
 			tx.Price, tx.Fee, tx.Total,
 		)
 
@@ -219,7 +219,7 @@ func TestEarningsPerYear(t *testing.T) {
 
 			fmt.Printf(
 				"%f\t%s\t\t%s\t%f\t%s\t\t%f\t\t%f\t%f\n",
-				tx.Size, tx.Asset,
+				tx.Size, tx.AssetPair,
 				tx.BoughtAt.Format(layout), utils.ToFixed(-tx.BoughtTotal, 2),
 				tx.SoldAt.Format(layout), utils.ToFixed(tx.SoldTotal, 2),
 				utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 2),
@@ -238,7 +238,7 @@ func TestEarningsPerYear(t *testing.T) {
 
 		fmt.Printf(
 			"[%s] %s %s %s %s Size: %f Price: %f Fee: %f Total: %f [%s]\n",
-			tx.Exchange, tx.CreatedAt, tx.Side, tx.Asset, tx.Unit, tx.Size,
+			tx.Exchange, tx.CreatedAt, tx.Side, tx.AssetPair, tx.Unit, tx.Size,
 			tx.Price, tx.Fee, tx.Total, tx.CostUnit,
 		)
 

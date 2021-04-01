@@ -157,7 +157,7 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 			if logs[i].Exchange == logs[j].Exchange {
 
 				if logs[i].Exchange == "coinbase-pro" &&
-					logs[i].Asset == logs[j].Asset {
+					logs[i].AssetPair == logs[j].AssetPair {
 
 					li, err := strconv.ParseInt(logs[i].ID, 10, 64)
 					if err != nil {
@@ -191,13 +191,13 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 
 	for i, tx := range logs {
 
-		if _, ok := products[tx.Exchange+tx.Asset+string(tx.Side)]; !ok {
+		if _, ok := products[tx.Exchange+tx.AssetPair+string(tx.Side)]; !ok {
 
-			lastSide[tx.Exchange+tx.Asset] = tx.Side
+			lastSide[tx.Exchange+tx.AssetPair] = tx.Side
 
 			groupId++
 
-			products[tx.Exchange+tx.Asset+string(tx.Side)] = processor{
+			products[tx.Exchange+tx.AssetPair+string(tx.Side)] = processor{
 				groupId: groupId,
 				next:    tx.CreatedAt.Add(time.Second * lr.secwindow),
 				intervalAcc: txcommon.GroupAccumulate{
@@ -215,13 +215,13 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 			continue
 		}
 
-		proc := products[tx.Exchange+tx.Asset+string(tx.Side)]
+		proc := products[tx.Exchange+tx.AssetPair+string(tx.Side)]
 
 		proc.intervalAcc.GrpSize = utils.ToFixed(proc.intervalAcc.GrpSize+tx.Size, 8)
 		proc.intervalAcc.GrpTotal = utils.ToFixed(proc.intervalAcc.GrpTotal+tx.Cost.Total, 8)
 		proc.intervalAcc.GrpFee = utils.ToFixed(proc.intervalAcc.GrpFee+tx.Cost.Fee, 8)
 
-		if lastSide[tx.Exchange+tx.Asset] == tx.Side &&
+		if lastSide[tx.Exchange+tx.AssetPair] == tx.Side &&
 			tx.CreatedAt.Before(proc.next) {
 
 		} else {
@@ -234,7 +234,7 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 			proc.intervalAcc.GrpTotal = tx.Total
 			proc.next = tx.CreatedAt.Add(time.Second * lr.secwindow)
 
-			lastSide[tx.Exchange+tx.Asset] = tx.Side // Might have changed
+			lastSide[tx.Exchange+tx.AssetPair] = tx.Side // Might have changed
 
 		}
 
@@ -243,7 +243,7 @@ func (lr *TxLogReaderImpl) preProcess(logs []txcommon.Transaction) []txcommon.Tr
 		logs[i].GrpTotal = proc.intervalAcc.GrpTotal
 		logs[i].GroupID = proc.groupId
 
-		products[tx.Exchange+tx.Asset+string(tx.Side)] = proc
+		products[tx.Exchange+tx.AssetPair+string(tx.Side)] = proc
 
 	}
 

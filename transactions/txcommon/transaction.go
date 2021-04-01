@@ -24,9 +24,9 @@ type Cost struct {
 }
 
 type Product struct {
-	Asset string  `csv:"product" json:"product"`
-	Size  float64 `csv:"size" json:"size"`
-	Unit  string  `csv:"sizeunit" json:"sizeunit"`
+	AssetPair string  `csv:"product" json:"assetpair"`
+	Size      float64 `csv:"size" json:"size"`
+	Unit      string  `csv:"sizeunit" json:"sizeunit"`
 }
 
 // GroupAccumulate is calculated by the `transaction.preProcess` function
@@ -95,7 +95,7 @@ func Assets(tx []Transaction) []string {
 
 	linq.From(tx).
 		Select(func(tx interface{}) interface{} {
-			return tx.(Transaction).Asset
+			return tx.(Transaction).AssetPair
 		}).
 		Distinct().
 		ToSlice(&products)
@@ -115,7 +115,7 @@ func Ordered(tx []Transaction) []Transaction {
 			return tx.(Transaction).Exchange
 		}).
 		ThenBy(func(tx interface{}) interface{} {
-			return tx.(Transaction).Asset
+			return tx.(Transaction).AssetPair
 		}).
 		ThenBy(func(tx interface{}) interface{} {
 			return tx.(Transaction).CreatedAt.Unix()
