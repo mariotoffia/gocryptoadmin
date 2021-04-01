@@ -196,15 +196,28 @@ func createPairedTx(sell txcommon.Transaction, buy []txcommon.Transaction) Paire
 		SoldFee:   sell.Fee,
 	}
 
-	pt.BoughtAt = buy[0].CreatedAt
+	price := float64(0)
+	prominent := 0
+	maxsize := float64(0)
 
-	for _, b := range buy {
+	for i, b := range buy {
+
+		sizeinsell := b.Size / sell.Size
+
+		if sizeinsell > maxsize {
+			maxsize = sizeinsell
+			prominent = i
+		}
+
+		price = utils.ToFixed(price+(b.Price*sizeinsell), 8)
 
 		pt.BoughtFee = utils.ToFixed(pt.BoughtFee+b.Fee, 8)
-		pt.BoughtPrice = utils.ToFixed(pt.BoughtPrice+b.Price, 8)
 		pt.BoughtTotal = utils.ToFixed(pt.BoughtTotal+b.Total, 8)
 
 	}
+
+	pt.BoughtPrice = price
+	pt.BoughtAt = buy[prominent].CreatedAt
 
 	return pt
 }

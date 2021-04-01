@@ -214,6 +214,11 @@ func TestEarningsPerYear(t *testing.T) {
 		tot := float64(0)
 		for _, tx := range data {
 
+			/*
+				if utils.ToFixed(-tx.BoughtTotal, 2) == 6335.78 {
+					fmt.Println("")
+				}*/
+
 			totTax += utils.ToFixed((tx.BoughtTotal+tx.Sell.Total)*tax, 8)
 			tot += utils.ToFixed(tx.BoughtTotal+tx.Sell.Total, 8)
 
