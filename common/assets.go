@@ -16,6 +16,10 @@ const (
 )
 
 type AssetPair struct {
-	Asset    AssetType `csv:"asset" json:"asset"`
+	Asset    AssetType `csv:"asset"    json:"asset"`
 	CostUnit AssetType `csv:"costunit" json:"costunit"`
+}
+
+func (ap AssetPair) String() string {
+	return string(ap.Asset) + "-" + string(ap.CostUnit)
 }

@@ -41,7 +41,6 @@ func (c *cbp) Transform(entry interface{}) common.Transaction {
 	if v, ok := entry.(CbpTransaction); ok {
 
 		return common.Transaction{
-			Portfolio:    v.Portfolio,
 			ID:           v.ID,
 			Exchange:     "coinbase-pro",
 			Side:         v.Side,
@@ -66,22 +65,22 @@ func (c *cbp) Transform(entry interface{}) common.Transaction {
 }
 
 type CbpCost struct {
-	Price    float64 `csv:"price" json:"price"`
-	Fee      float64 `csv:"fee" json:"fee"`
-	Total    float64 `csv:"total" json:"total"`
+	Price    float64 `csv:"price"                json:"price"`
+	Fee      float64 `csv:"fee"                  json:"fee"`
+	Total    float64 `csv:"total"                json:"total"`
 	CostUnit string  `csv:"price/fee/total unit" json:"priceFeeTotalUnit"`
 }
 
 type CbpProduct struct {
-	Product string  `csv:"product" json:"product"`
-	Size    float64 `csv:"size" json:"size"`
+	Product string  `csv:"product"   json:"product"`
+	Size    float64 `csv:"size"      json:"size"`
 	Unit    string  `csv:"size unit" json:"unit"`
 }
 
 type CbpTransaction struct {
-	Portfolio string          `csv:"portfolio" json:"portfolio"`
-	ID        string          `csv:"trade id" json:"id"`
-	Side      common.SideType `csv:"side" json:"side"`
+	Portfolio string          `csv:"portfolio"  json:"portfolio"`
+	ID        string          `csv:"trade id"   json:"id"`
+	Side      common.SideType `csv:"side"       json:"side"`
 	CreatedAt time.Time       `csv:"created at" json:"created"`
 	CbpProduct
 	CbpCost

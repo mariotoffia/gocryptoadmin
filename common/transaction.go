@@ -16,15 +16,14 @@ const (
 // Transaction represents a single transaction
 //
 type Transaction struct {
-	Portfolio    string    `csv:"portfolio" json:"portfolio"`
-	ID           string    `csv:"id" json:"id"`
+	ID           string    `csv:"id"       json:"id"`
 	Exchange     string    `csv:"exchange" json:"exchange"`
-	Side         SideType  `csv:"side" json:"side"`
-	CreatedAt    time.Time `csv:"created" json:"created"`
-	AssetSize    float64   `csv:"size" json:"size"`
-	PricePerUnit float64   `csv:"price" json:"price"`
-	Fee          float64   `csv:"fee" json:"fee"`
-	TotalPrice   float64   `csv:"total" json:"total"`
+	Side         SideType  `csv:"side"     json:"side"`
+	CreatedAt    time.Time `csv:"created"  json:"created"`
+	AssetSize    float64   `csv:"size"     json:"size"`
+	PricePerUnit float64   `csv:"price"    json:"price"`
+	Fee          float64   `csv:"fee"      json:"fee"`
+	TotalPrice   float64   `csv:"total"    json:"total"`
 
 	AssetPair
 }
