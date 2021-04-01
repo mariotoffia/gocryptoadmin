@@ -1,4 +1,12 @@
 {
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": "\\.go$",
+                "cmd": "golines ${file} -w"
+            }
+        ]
+    },
     "cSpell.words": [
         "Antal",
         "F",
@@ -9,6 +17,7 @@
         "Vinst",
         "ahmetb",
         "gocryptoadmin",
+        "golines",
         "grpfee",
         "grpid",
         "grpsize",
@@ -18,9 +27,11 @@
         "linq",
         "ljningsbelopp",
         "ljningsdatum",
+        "mariotoffia",
         "pairme",
         "pushme",
         "rs",
+        "segmentio",
         "stretchr",
         "txcommon",
         "txgroup",

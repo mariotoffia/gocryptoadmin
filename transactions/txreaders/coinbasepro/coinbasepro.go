@@ -41,21 +41,18 @@ func (c *cbp) Transform(entry interface{}) common.Transaction {
 	if v, ok := entry.(CbpTransaction); ok {
 
 		return common.Transaction{
-			Portfolio: v.Portfolio,
-			ID:        v.ID,
-			Exchange:  "coinbase-pro",
-			Side:      v.Side,
-			CreatedAt: v.CreatedAt,
-			Product: common.Product{
-				AssetPair: v.Product,
-				Size:      v.Size,
-				Unit:      v.Unit,
-			},
-			Cost: common.Cost{
-				Price:    v.Price,
-				Fee:      v.Fee,
-				Total:    v.Total,
-				CostUnit: v.CostUnit,
+			Portfolio:    v.Portfolio,
+			ID:           v.ID,
+			Exchange:     "coinbase-pro",
+			Side:         v.Side,
+			CreatedAt:    v.CreatedAt,
+			AssetSize:    v.Size,
+			PricePerUnit: v.Price,
+			Fee:          v.Fee,
+			TotalPrice:   v.Total,
+			AssetPair: common.AssetPair{
+				Asset:    common.AssetType(v.Unit),
+				CostUnit: common.AssetType(v.CostUnit),
 			},
 		}
 	}
