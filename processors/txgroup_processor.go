@@ -1,6 +1,7 @@
 package processors
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
@@ -37,10 +38,10 @@ func NewTxGroupProcessor() *TxGroupProcessor {
 // If any of the above bullets fail, all _"Open"_ `Transaction` instances should be merged.
 //
 // NOTE: This function _REQUIRES_ that the transactions are in chronological order!!
-func (txg *TxGroupProcessor) Process(tx common.Transaction) {
+func (txg *TxGroupProcessor) Process(tx common.TransactionLog) {
 
 	item := txg.cache.GetItem(tx)
-
+	fmt.Println(item)
 	// TODO: do the logic...
 
 }

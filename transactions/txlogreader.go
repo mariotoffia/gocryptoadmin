@@ -58,29 +58,29 @@ func (lr *TxLogReaderImpl) RegisterReader(
 
 }
 
-func (lr *TxLogReaderImpl) Read() []common.Transaction {
+func (lr *TxLogReaderImpl) Read() []common.TransactionLog {
 
 	return lr.preProcess(lr.read(lr.dir, lr.recursive))
 
 }
 
-func (lr *TxLogReaderImpl) ReadBuffer(readerName string, data []byte) []common.Transaction {
+func (lr *TxLogReaderImpl) ReadBuffer(readerName string, data []byte) []common.TransactionLog {
 
 	if log, ok := lr.readers[readerName]; ok {
 		return lr.preProcess(log.Unmarshal(data))
 	}
 
 	if lr.ignoreUnknown {
-		return []common.Transaction{}
+		return []common.TransactionLog{}
 	}
 
 	panic(fmt.Sprintf("could not find reader named: %s", readerName))
 
 }
 
-func (lr *TxLogReaderImpl) read(directory string, recursive bool) []common.Transaction {
+func (lr *TxLogReaderImpl) read(directory string, recursive bool) []common.TransactionLog {
 
-	tx := []common.Transaction{}
+	tx := []common.TransactionLog{}
 
 	if !filepath.IsAbs(directory) {
 
@@ -154,7 +154,7 @@ func logReaderNameFromFileName(name string) string {
 	return strings.SplitN(name, "_", 2)[0]
 }
 
-func (lr *TxLogReaderImpl) preProcess(logs []common.Transaction) []common.Transaction {
+func (lr *TxLogReaderImpl) preProcess(logs []common.TransactionLog) []common.TransactionLog {
 
 	sort.Slice(logs, func(i, j int) bool {
 

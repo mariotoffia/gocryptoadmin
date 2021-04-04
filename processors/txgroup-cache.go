@@ -12,7 +12,7 @@ type txgroupTxCacheItem struct {
 	pair     common.AssetPair
 	side     common.SideType
 	next     time.Time
-	tx       common.TxGroup
+	tx       common.TxGroupEntry
 }
 
 type txgroupTxCache struct {
@@ -21,12 +21,11 @@ type txgroupTxCache struct {
 	secwindow time.Duration
 }
 
-func (txg *txgroupTxCache) GetItem(tx common.Transaction) *txgroupTxCacheItem {
+func (txg *txgroupTxCache) GetItem(tx common.TransactionLog) *txgroupTxCacheItem {
 
 	if item, ok := txg.cache[tx.Exchange+tx.AssetPair.String()+string(tx.Side)]; ok {
 
-		if 
-
+		item.tx.AddTransactionEntry(tx)
 		return item
 	}
 
@@ -35,19 +34,16 @@ func (txg *txgroupTxCache) GetItem(tx common.Transaction) *txgroupTxCacheItem {
 		pair:     tx.AssetPair,
 		side:     tx.Side,
 		next:     tx.CreatedAt.Add(time.Second * txg.secwindow),
-		tx: common.TxGroup{
-			Transaction: tx,
-			Tx:          []common.Transaction{},
+		tx: common.TxGroupEntry{
+			TransactionLog: tx,
+			Tx:             []common.TransactionLog{},
 		},
 	}
 
 	txg.groupId++
 
-	item.tx.Fee = 0
 	item.tx.ID = fmt.Sprint(txg.groupId)
-	item.tx.PricePerUnit = 0
-	item.tx.TotalPrice = 0
-	item.tx.AssetSize = 0
+	item.tx.AddTransactionEntry(tx)
 
 	txg.cache[tx.Exchange+tx.AssetPair.String()+string(tx.Side)] = item
 

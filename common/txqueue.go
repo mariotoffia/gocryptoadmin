@@ -1,16 +1,16 @@
 package common
 
-type TxQueue []*Transaction
+type TxQueue []*TransactionLog
 
-func (q *TxQueue) Push(n *Transaction) {
+func (q *TxQueue) Push(n *TransactionLog) {
 	*q = append(*q, n)
 }
 
-func (q *TxQueue) PushFront(n *Transaction) {
+func (q *TxQueue) PushFront(n *TransactionLog) {
 	*q = append(TxQueue{n}, *q...)
 }
 
-func (q *TxQueue) Pop() (n *Transaction) {
+func (q *TxQueue) Pop() (n *TransactionLog) {
 	n = (*q)[0]
 	*q = (*q)[1:]
 	return

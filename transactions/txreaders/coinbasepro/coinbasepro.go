@@ -16,7 +16,7 @@ func NewTransactionLogReader() common.TransactionLogReader {
 	return &cbp{}
 }
 
-func (c *cbp) Unmarshal(data []byte) []common.Transaction {
+func (c *cbp) Unmarshal(data []byte) []common.TransactionLog {
 
 	var v []CbpTransaction
 	err := csvutil.Unmarshal(data, &v)
@@ -25,7 +25,7 @@ func (c *cbp) Unmarshal(data []byte) []common.Transaction {
 		panic(err)
 	}
 
-	tx := []common.Transaction{}
+	tx := []common.TransactionLog{}
 
 	for i := range v {
 		tx = append(tx, c.Transform(v[i]))
@@ -36,11 +36,11 @@ func (c *cbp) Unmarshal(data []byte) []common.Transaction {
 
 // Transform will get the instance pointer returned from `Entry`
 // and is expected to transform to a `Transaction`
-func (c *cbp) Transform(entry interface{}) common.Transaction {
+func (c *cbp) Transform(entry interface{}) common.TransactionLog {
 
 	if v, ok := entry.(CbpTransaction); ok {
 
-		return common.Transaction{
+		return common.TransactionLog{
 			ID:           v.ID,
 			Exchange:     "coinbase-pro",
 			Side:         v.Side,

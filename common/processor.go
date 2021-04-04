@@ -17,7 +17,7 @@ type Processor interface {
 	// 4. The Asset part of the Open `Transaction` is not part of a `CostUnit` in the new `Transaction`
 	//
 	// If any of the above bullets fail, all _"Open"_ `Transaction` instances should be merged.
-	Process(tx Transaction)
+	Process(tx TransactionEntry)
 	// Flush will make sure so any non committed to account `Transaction` instances is processed
 	Flush()
 	// UseGroupWindow specifies that the window to group transactions is up to _s_ seconds.
