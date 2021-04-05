@@ -4,12 +4,28 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ahmetb/go-linq/v3"
 	"github.com/mariotoffia/gocryptoadmin/common"
 )
 
 type TxGroupCacheItem struct {
-	Next time.Time
-	Tx   common.TxGroupEntry
+	next time.Time
+	tx   common.TxGroupEntry
+}
+
+// WithinWindow checks if the _tx_ is within the current window in the cache item.
+func (txi *TxGroupCacheItem) WithinWindow(tx common.TransactionLog) bool {
+
+	return tx.CreatedAt.Before(txi.next)
+
+}
+
+// IsOpen returns `true` if there are any entries in the `Tx.Tx` field, i.e. any transactions in the
+// group.
+func (txi *TxGroupCacheItem) IsOpen() bool {
+
+	return len(txi.tx.Tx) != 0
+
 }
 
 type TxGroupCache struct {
@@ -39,6 +55,87 @@ func (txg *TxGroupCache) GetCache(
 
 }
 
+// FlushCache will extract the `common.TxGroupEntry` and remove the cache completely.
+func (txg *TxGroupCache) FlushCache(item *TxGroupCacheItem) common.TxGroupEntry {
+
+	tx := item.tx
+	delete(txg.cache, tx.GetExchange()+tx.GetAssetPair().String()+string(tx.GetSide()))
+	return tx
+}
+
+func (txg *TxGroupCache) FlushAllCaches() []common.TxGroupEntry {
+
+	tx := []common.TxGroupEntry{}
+	for _, cache := range txg.cache {
+
+		if cache.IsOpen() {
+			tx = append(tx, cache.tx)
+		}
+
+	}
+
+	txg.cache = map[string]*TxGroupCacheItem{}
+
+	return tx
+}
+
+// GetOtherSide is same as `GetCache` except that it will get the inverse `SideType`
+// of the transaction. It will *panic* if the `SideType` is unknown.
+//
+// .Other Side
+// ====
+// 1. tx side is _BUY_ -> it will look for _SELL_
+// 2. tx side is _RECEIVE_ -> it will look for _TRANSFER_.
+// ====
+func (txg *TxGroupCache) GetOtherSide(
+	tx common.TransactionLog,
+) (item *TxGroupCacheItem, found bool) {
+
+	var side common.SideType
+	switch tx.Side {
+	case common.SideTypeBuy:
+		side = common.SideTypeSell
+	case common.SideTypeSell:
+		side = common.SideTypeBuy
+	case common.SideTypeReceive:
+		side = common.SideTypeTransfer
+	case common.SideTypeTransfer:
+		side = common.SideTypeReceive
+	default:
+		panic(
+			fmt.Sprintf("not supported sidetype in get other side operation: %s", string(tx.Side)),
+		)
+	}
+
+	item, found = txg.cache[tx.Exchange+tx.AssetPair.String()+string(side)]
+	return
+}
+
+// GetOthersWithSameCostUnit will return all caches that do have transactions with same
+// `CostUnit` as the `tx.Asset`.
+//
+// Usually, the cost unit is in EUR or $ but it may be e.g. LTC, BTC and if e.g. _tx_ do have
+// `Asset` of _BTC_, and there exist a few cache items with `CostUnit` of _BTC_ (e.g. _XRP-BTC_),
+// those will be returned.
+func (txg *TxGroupCache) GetOthersWithSameCostUnit(tx common.TransactionLog) []*TxGroupCacheItem {
+
+	var res []*TxGroupCacheItem
+
+	linq.From(txg.cache).
+		Where(func(txi interface{}) bool {
+
+			c := txi.(*TxGroupCacheItem)
+			e := c.tx
+
+			return e.GetExchange() == tx.GetExchange() &&
+				e.GetAssetPair().CostUnit == tx.GetAssetPair().Asset &&
+				c.IsOpen()
+
+		}).ToSlice(&res)
+
+	return res
+}
+
 // CreateCacheAddTx will create a chache item and add the current transaction to it.
 //
 // It will panic if the cache item is already created.
@@ -56,13 +153,13 @@ func (txg *TxGroupCache) CreateCacheAddTx(tx common.TransactionLog) *TxGroupCach
 	}
 
 	item := &TxGroupCacheItem{
-		Next: tx.CreatedAt.Add(time.Second * txg.secwindow),
+		next: tx.CreatedAt.Add(time.Second * txg.secwindow),
 	}
 
 	txg.groupId++
 
-	item.Tx.ID = fmt.Sprint(txg.groupId)
-	item.Tx.AddTransactionEntry(tx)
+	item.tx.ID = fmt.Sprint(txg.groupId)
+	item.tx.AddTransactionEntry(tx)
 
 	txg.cache[tx.Exchange+tx.AssetPair.String()+string(tx.Side)] = item
 
@@ -77,7 +174,7 @@ func (txg *TxGroupCache) AddTransactionToCache(tx common.TransactionLog) {
 
 	if item, ok := txg.cache[tx.Exchange+tx.AssetPair.String()+string(tx.Side)]; ok {
 
-		item.Tx.AddTransactionEntry(tx)
+		item.tx.AddTransactionEntry(tx)
 		return
 	}
 

@@ -1,7 +1,6 @@
 package processors
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
@@ -9,13 +8,15 @@ import (
 )
 
 type TxGroupProcessor struct {
-	cache     *procutils.TxGroupCache
-	processed bool
+	cache        *procutils.TxGroupCache
+	transactions []common.TxGroupEntry
+	processed    bool
 }
 
 func NewTxGroupProcessor() *TxGroupProcessor {
 	return &TxGroupProcessor{
-		cache: procutils.NewTxGroupCache(time.Duration(5 * 60)),
+		cache:        procutils.NewTxGroupCache(time.Duration(5 * 60)),
+		transactions: []common.TxGroupEntry{},
 	}
 }
 
@@ -30,7 +31,7 @@ func NewTxGroupProcessor() *TxGroupProcessor {
 // A `Processor` may merge `Transaction` instances as long as the following criteria is fulfilled
 //
 // 1. Within Group Window (if any)
-// 2. "Open `AssetPair` Transaction" - i.e. it is in a cache and not yet registered in the ledger
+// 2. "Open `AssetPair` Transaction" - i.e. it is in a cache and not yet written to underlying _"store"_
 // 3. The new transaction, with same `AssetPair` do have same `SideType`
 // 4. The Asset part of the Open `Transaction` is not part of a `CostUnit` in the new `Transaction`
 //
@@ -41,19 +42,55 @@ func (txg *TxGroupProcessor) Process(tx common.TransactionLog) {
 
 	item, ok := txg.cache.GetCache(tx)
 
+	// 2. "Open `AssetPair` Transaction" - i.e. it is in a cache
+	//     and not yet written to underlying _"store"_
 	if !ok {
 
+		txg.cache.CreateCacheAddTx(tx)
+
+		// 3. The new transaction, with same `AssetPair` do have same `SideType`
+		if other, ok := txg.cache.GetOtherSide(tx); ok {
+
+			if other.IsOpen() {
+				// Close the other since
+				txg.transactions = append(txg.transactions, txg.cache.FlushCache(other))
+			}
+
+		}
+
+		return
+
+	}
+
+	// 1. Within Group Window (if any)
+	if !item.WithinWindow(tx) {
+
+		txg.transactions = append(txg.transactions, txg.cache.FlushCache(item))
 		txg.cache.CreateCacheAddTx(tx)
 		return
 
 	}
 
-	fmt.Println(item)
+	// 4. The Asset part of the Open `Transaction` is not part of
+	//    a `CostUnit` in the new `Transaction`
+	others := txg.cache.GetOthersWithSameCostUnit(tx)
+	if len(others) > 0 {
 
+		// Need to close them since this tx is buying or selling
+		// same asset as been used in a cost unit in others, i.e.
+		// balance of this asset is either increasing or declining.
+		for i := range others {
+			txg.transactions = append(txg.transactions, txg.cache.FlushCache(others[i]))
+		}
+
+	}
+
+	// Add the transaction to cache
+	txg.cache.AddTransactionToCache(tx)
 }
 
 func (txg *TxGroupProcessor) Flush() {
-	// TODO: need to do something here?
+	txg.transactions = append(txg.transactions, txg.cache.FlushAllCaches()...)
 }
 
 func (txg *TxGroupProcessor) UseGroupWindow(s int64) {

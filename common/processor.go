@@ -12,7 +12,7 @@ type Processor interface {
 	// A `Processor` may merge `Transaction` instances as long as the following criteria is fulfilled
 	//
 	// 1. Within Group Window (if any)
-	// 2. "Open `AssetPair` Transaction" - i.e. it is in a cache and not yet registered in the ledger
+	// 2. "Open `AssetPair` Transaction" - i.e. it is in a cache and not yet written to underlying _"store"_
 	// 3. The new transaction, with same `AssetPair` do have same `SideType`
 	// 4. The Asset part of the Open `Transaction` is not part of a `CostUnit` in the new `Transaction`
 	//
