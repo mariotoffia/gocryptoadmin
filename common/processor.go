@@ -23,5 +23,7 @@ type Processor interface {
 	// UseGroupWindow specifies that the window to group transactions is up to _s_ seconds.
 	//
 	// Default is 6 hours.
+	//
+	// NOTE: This function is _REQUIRED_ to be invoked before any `Process` invocation, otherwise it will *panic*.
 	UseGroupWindow(s int64)
 }

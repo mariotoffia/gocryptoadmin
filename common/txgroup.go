@@ -36,7 +36,7 @@ type TxLogGroup interface {
 	// is reflected in the `TransactionEntry` interface methods
 	GetTransactionEntries() []TransactionLog
 	// AddTransactionEntry adds a single entry to the `TransactionLog` array
-	AddTransactionEntry(tx TxGroupEntry) *TxGroupEntry
+	AddTransactionEntry(tx TransactionLog) *TxGroupEntry
 	// GetMostProminentSizeTransactionLog get the `TransactionLog` of largest `AssetSize`
 	// in the all of the `TransactionLog` instances.
 	GetMostProminentSizeTransactionLog() TransactionLog
