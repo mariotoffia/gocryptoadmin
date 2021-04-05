@@ -8,28 +8,59 @@ import (
 )
 
 type TxGroupProcessor struct {
-	cache        *procutils.TxGroupCache
-	transactions []common.TxGroupEntry
-	processed    bool
+	cache          *procutils.TxGroupCache
+	transactions   []common.TxGroupEntry
+	secwindow      time.Duration
+	flushProcessor common.TxGroupProcessor
 }
 
 // NewTxGroupProcessor creates a new processor with windowsize of 5 minutes.
-func NewTxGroupProcessor() *TxGroupProcessor {
-	return &TxGroupProcessor{
-		cache:        procutils.NewTxGroupCache(time.Duration(5 * 60)),
-		transactions: []common.TxGroupEntry{},
+//
+// This `Processor` _REQUIRES_ that the log entries are ordered in chronological
+// order since it will not sort entries.
+//
+// By default it assigns a `ChronologicalProcessor`, this can be cleared by
+// setting `UseFlushProcessor(nil)`.
+func NewTxGroupProcessor(secwindow time.Duration) *TxGroupProcessor {
+
+	if secwindow <= 0 {
+		secwindow = time.Duration(5 * 60)
 	}
+
+	return &TxGroupProcessor{
+		cache:          procutils.NewTxGroupCache(secwindow),
+		transactions:   []common.TxGroupEntry{},
+		secwindow:      secwindow,
+		flushProcessor: NewChronologicalGroupTxEntryProcessor(),
+	}
+
 }
 
-// Processes a transaction.
+// UseFlushProcessor sets a new flush processor (executed during `Flush` operation).
 //
-// It may hold the transaction in its cache if e.g. a merge operation is currently done. E.g.
-// using a group window.
+// If _flushProcessor_ is `nil` it will remove the processor and nothing is processed before
+// the records are returned during `Flush`. This may be useful when external processing is much
+// more efficient.
+func (txg *TxGroupProcessor) UseFlushProcessor(
+	flushProcessor common.TxGroupProcessor,
+) *TxGroupProcessor {
+
+	txg.flushProcessor = flushProcessor
+	return txg
+
+}
+
+// Resets clears the processor to start from scratch.
+func (txg *TxGroupProcessor) Reset() {
+
+	txg.transactions = []common.TxGroupEntry{}
+	txg.cache = procutils.NewTxGroupCache(txg.secwindow)
+
+}
+
+// Processes a single transaction entry.
 //
-// When `Transaction` instances is in this cache, they are said to be open. If `Flush` is invoked,
-// they are unconditionally merged and written to the underlying store.
-//
-// A `Processor` may merge `Transaction` instances as long as the following criteria is fulfilled
+// It will hold the transaction in its cache until using the following steps.
 //
 // 1. Within Group Window (if any)
 // 2. "Open `AssetPair` Transaction" - i.e. it is in a cache and not yet written to underlying _"store"_
@@ -38,8 +69,6 @@ func NewTxGroupProcessor() *TxGroupProcessor {
 //
 // If any of the above bullets fail, all _"Open"_ `Transaction` instances should be merged.
 func (txg *TxGroupProcessor) Process(tx common.TransactionLog) {
-
-	txg.processed = true
 
 	item, ok := txg.cache.GetCache(tx)
 
@@ -90,21 +119,30 @@ func (txg *TxGroupProcessor) Process(tx common.TransactionLog) {
 	txg.cache.AddTransactionToCache(tx)
 }
 
-func (txg *TxGroupProcessor) Flush() []common.TxGroupEntry {
+// ProcessMany is calling `Process` by iterating the _tx_ array
+func (txg *TxGroupProcessor) ProcessMany(tx []common.TransactionLog) {
 
-	txg.transactions = append(txg.transactions, txg.cache.FlushAllCaches()...)
-	return txg.transactions
+	for i := range tx {
 
-}
-
-func (txg *TxGroupProcessor) UseGroupWindow(s time.Duration) {
-
-	if txg.processed {
-
-		panic("cannot set group windows after process has been invoked!")
+		txg.Process(tx[i])
 
 	}
 
-	txg.cache = procutils.NewTxGroupCache(s)
+}
+
+func (txg *TxGroupProcessor) Flush() []common.TxGroupEntry {
+
+	txg.transactions = append(txg.transactions, txg.cache.FlushAllCaches()...)
+
+	if txg.flushProcessor == nil {
+
+		return txg.transactions
+
+	}
+
+	txg.flushProcessor.Reset()
+	txg.flushProcessor.ProcessMany(txg.transactions)
+
+	return txg.flushProcessor.Flush()
 
 }

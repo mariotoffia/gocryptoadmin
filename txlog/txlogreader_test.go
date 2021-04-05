@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/mariotoffia/gocryptoadmin/processors"
 	"github.com/mariotoffia/gocryptoadmin/txlog/coinbasepro"
 	"github.com/stretchr/testify/require"
 )
@@ -37,7 +38,7 @@ default,382593,XLM-EUR,SELL,2019-06-26T13:35:46.772Z,439.00000000,XLM,0.11375,0.
 
 	require.Equal(t, nil, err)
 
-	tx := NewTxLogReader().
+	tx := NewTxLogReader(processors.NewChronologicalTxEntryProcessor()).
 		UseDir(filepath.Dir(fp)).
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		ReadBuffer("coinbasepro", []byte(data))
@@ -57,7 +58,7 @@ default,382593,XLM-EUR,SELL,2019-06-26T13:35:46.772Z,439.00000000,XLM,0.11375,0.
 
 func TestReadCoinbasedTxLogFiles(t *testing.T) {
 
-	tx := NewTxLogReader().
+	tx := NewTxLogReader(processors.NewChronologicalTxEntryProcessor()).
 		UseDir("../data").
 		IgnoreUnknownFiles().
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).

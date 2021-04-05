@@ -10,14 +10,13 @@ import (
 
 func TestReadCoinbasedTxLogFiles(t *testing.T) {
 
-	tx := txlog.NewTxLogReader().
+	tx := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
 		UseDir("../data").
 		IgnoreUnknownFiles().
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		Read()
 
-	proc := NewTxGroupProcessor()
-	// proc.UseGroupWindow(time.Duration(30 * 60))
+	proc := NewTxGroupProcessor(0 /*default window*/) // time.Duration(30 * 60)
 
 	for _, tx := range tx {
 		proc.Process(tx)

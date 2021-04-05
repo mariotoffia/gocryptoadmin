@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
@@ -16,14 +14,16 @@ type TxLogReaderImpl struct {
 	dir           string
 	recursive     bool
 	ignoreUnknown bool
+	postProcessor common.TxEntryProcessor
 }
 
-func NewTxLogReader() *TxLogReaderImpl {
+func NewTxLogReader(postProcessor common.TxEntryProcessor) *TxLogReaderImpl {
 
 	return &TxLogReaderImpl{
-		readers:   map[string]common.TransactionLogReader{},
-		dir:       ".",
-		recursive: false,
+		readers:       map[string]common.TransactionLogReader{},
+		dir:           ".",
+		recursive:     false,
+		postProcessor: postProcessor,
 	}
 
 }
@@ -156,34 +156,13 @@ func logReaderNameFromFileName(name string) string {
 
 func (lr *TxLogReaderImpl) preProcess(logs []common.TransactionLog) []common.TransactionLog {
 
-	sort.Slice(logs, func(i, j int) bool {
+	if lr.postProcessor == nil {
+		return logs
+	}
 
-		if logs[i].CreatedAt.Equal(logs[j].CreatedAt) {
+	lr.postProcessor.Reset()
 
-			if logs[i].Exchange == logs[j].Exchange {
+	lr.postProcessor.ProcessMany(logs)
 
-				if logs[i].Exchange == "coinbase-pro" &&
-					logs[i].AssetPair == logs[j].AssetPair {
-
-					li, err := strconv.ParseInt(logs[i].ID, 10, 64)
-					if err != nil {
-						panic(err)
-					}
-
-					lj, err := strconv.ParseInt(logs[j].ID, 10, 64)
-					if err != nil {
-						panic(err)
-					}
-
-					return li < lj
-
-				}
-			}
-
-		}
-
-		return logs[i].CreatedAt.Before(logs[j].CreatedAt)
-	})
-
-	return logs
+	return lr.postProcessor.Flush()
 }
