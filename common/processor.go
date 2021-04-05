@@ -19,7 +19,9 @@ type Processor interface {
 	// If any of the above bullets fail, all _"Open"_ `Transaction` instances should be merged.
 	Process(tx TransactionEntry)
 	// Flush will make sure so any non committed to account `Transaction` instances is processed
-	Flush()
+	//
+	// It will return all current flushed entries (including all earlier).
+	Flush() []TxGroupEntry
 	// UseGroupWindow specifies that the window to group transactions is up to _s_ seconds.
 	//
 	// Default is 6 hours.

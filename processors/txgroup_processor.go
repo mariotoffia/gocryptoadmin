@@ -90,9 +90,10 @@ func (txg *TxGroupProcessor) Process(tx common.TransactionLog) {
 	txg.cache.AddTransactionToCache(tx)
 }
 
-func (txg *TxGroupProcessor) Flush() {
+func (txg *TxGroupProcessor) Flush() []common.TxGroupEntry {
 
 	txg.transactions = append(txg.transactions, txg.cache.FlushAllCaches()...)
+	return txg.transactions
 
 }
 
