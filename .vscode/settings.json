@@ -35,6 +35,7 @@
         "stretchr",
         "txcommon",
         "txgroup",
+        "txlog",
         "txprocessors",
         "txsell"
     ]

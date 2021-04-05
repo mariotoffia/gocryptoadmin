@@ -1,4 +1,4 @@
-package transactions
+package txlog
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mariotoffia/gocryptoadmin/transactions/txreaders/coinbasepro"
+	"github.com/mariotoffia/gocryptoadmin/txlog/coinbasepro"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,6 +41,27 @@ default,382593,XLM-EUR,SELL,2019-06-26T13:35:46.772Z,439.00000000,XLM,0.11375,0.
 		UseDir(filepath.Dir(fp)).
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		ReadBuffer("coinbasepro", []byte(data))
+
+	for _, tx := range tx {
+
+		fmt.Printf(
+			"[%s] %s %s %s \n S:%f  F:%f  T:%f P:%f\n",
+			tx.Exchange, tx.CreatedAt.String(), tx.Side, tx.Asset,
+			tx.AssetSize, tx.Fee, tx.TotalPrice, tx.PricePerUnit,
+		)
+
+	}
+
+	fmt.Println(len(tx))
+}
+
+func TestReadCoinbasedTxLogFiles(t *testing.T) {
+
+	tx := NewTxLogReader().
+		UseDir("../data").
+		IgnoreUnknownFiles().
+		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
+		Read()
 
 	for _, tx := range tx {
 

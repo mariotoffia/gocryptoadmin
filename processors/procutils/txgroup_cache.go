@@ -122,16 +122,20 @@ func (txg *TxGroupCache) GetOthersWithSameCostUnit(tx common.TransactionLog) []*
 	var res []*TxGroupCacheItem
 
 	linq.From(txg.cache).
-		Where(func(txi interface{}) bool {
+		Where(func(kv interface{}) bool {
 
-			c := txi.(*TxGroupCacheItem)
+			c := kv.(linq.KeyValue).Value.(*TxGroupCacheItem)
 			e := c.tx
 
 			return e.GetExchange() == tx.GetExchange() &&
 				e.GetAssetPair().CostUnit == tx.GetAssetPair().Asset &&
 				c.IsOpen()
 
-		}).ToSlice(&res)
+		}).
+		Select(func(kv interface{}) interface{} {
+			return kv.(linq.KeyValue).Value
+		}).
+		ToSlice(&res)
 
 	return res
 }

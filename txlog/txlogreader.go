@@ -1,4 +1,4 @@
-package transactions
+package txlog
 
 import (
 	"fmt"
