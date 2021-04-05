@@ -13,6 +13,7 @@ type TxGroupProcessor struct {
 	processed    bool
 }
 
+// NewTxGroupProcessor creates a new processor with windowsize of 5 minutes.
 func NewTxGroupProcessor() *TxGroupProcessor {
 	return &TxGroupProcessor{
 		cache:        procutils.NewTxGroupCache(time.Duration(5 * 60)),
@@ -90,7 +91,9 @@ func (txg *TxGroupProcessor) Process(tx common.TransactionLog) {
 }
 
 func (txg *TxGroupProcessor) Flush() {
+
 	txg.transactions = append(txg.transactions, txg.cache.FlushAllCaches()...)
+
 }
 
 func (txg *TxGroupProcessor) UseGroupWindow(s int64) {
