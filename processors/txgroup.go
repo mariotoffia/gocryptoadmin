@@ -97,7 +97,7 @@ func (txg *TxGroupProcessor) Flush() []common.TxGroupEntry {
 
 }
 
-func (txg *TxGroupProcessor) UseGroupWindow(s int64) {
+func (txg *TxGroupProcessor) UseGroupWindow(s time.Duration) {
 
 	if txg.processed {
 
@@ -105,6 +105,6 @@ func (txg *TxGroupProcessor) UseGroupWindow(s int64) {
 
 	}
 
-	txg.cache = procutils.NewTxGroupCache(time.Duration(s))
+	txg.cache = procutils.NewTxGroupCache(s)
 
 }

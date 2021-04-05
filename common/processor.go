@@ -1,5 +1,7 @@
 package common
 
+import "time"
+
 type Processor interface {
 	// Processes a transaction.
 	//
@@ -27,5 +29,5 @@ type Processor interface {
 	// Default is 6 hours.
 	//
 	// NOTE: This function is _REQUIRED_ to be invoked before any `Process` invocation, otherwise it will *panic*.
-	UseGroupWindow(s int64)
+	UseGroupWindow(s time.Duration)
 }

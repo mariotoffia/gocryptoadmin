@@ -17,6 +17,7 @@ func TestReadCoinbasedTxLogFiles(t *testing.T) {
 		Read()
 
 	proc := NewTxGroupProcessor()
+	// proc.UseGroupWindow(time.Duration(30 * 60))
 
 	for _, tx := range tx {
 		proc.Process(tx)
