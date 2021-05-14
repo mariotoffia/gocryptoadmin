@@ -61,13 +61,50 @@ func (txg *TxGroupCache) FlushAllCaches() []common.TxGroupEntry {
 	return tx
 }
 
+// GetAllOtherSide will return all sides found in cache, except, in param side.
+func (txg *TxGroupCache) GetAllOtherSide(
+	tx common.TransactionLog,
+	side common.SideType,
+) (items []*TxGroupCacheItem, found bool) {
+
+	other := []common.SideType{
+		common.SideTypeBuy,
+		common.SideTypeSell,
+		common.SideTypeReceive,
+		common.SideTypeTransfer,
+	}
+
+	for i := 0; i < 4; i++ {
+
+		if other[i] == side {
+
+			other = append(other[:i], other[i+1:]...)
+			break
+		}
+
+	}
+
+	items = []*TxGroupCacheItem{}
+
+	for _, s := range other {
+
+		if item, found := txg.cache[tx.Exchange+tx.AssetPair.String()+string(s)]; found {
+			items = append(items, item)
+		}
+
+	}
+
+	return items, len(items) > 0
+
+}
+
 // GetOtherSide is same as `GetCache` except that it will get the inverse `SideType`
 // of the transaction. It will *panic* if the `SideType` is unknown.
 //
 // .Other Side
 // ====
 // 1. tx side is _BUY_ -> it will look for _SELL_
-// 2. tx side is _RECEIVE_ -> it will look for _TRANSFER_.
+// 2. tx side is _RECEIVE_ or _TRANSFER_ it will panic!
 // ====
 func (txg *TxGroupCache) GetOtherSide(
 	tx common.TransactionLog,
@@ -80,9 +117,9 @@ func (txg *TxGroupCache) GetOtherSide(
 	case common.SideTypeSell:
 		side = common.SideTypeBuy
 	case common.SideTypeReceive:
-		side = common.SideTypeTransfer
+		fallthrough
 	case common.SideTypeTransfer:
-		side = common.SideTypeReceive
+		fallthrough
 	default:
 		panic(
 			fmt.Sprintf(

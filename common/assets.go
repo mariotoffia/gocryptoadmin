@@ -4,15 +4,16 @@ package common
 type AssetType string
 
 const (
-	AssetTypeEuro AssetType = "EUR"
-	AssetTypeUSDT AssetType = "USDT"
-	AssetTypeBTC  AssetType = "BTC"
-	AssetTypeLTC  AssetType = "LTC"
-	AssetTypeETH  AssetType = "ETH"
-	AssetTypeETC  AssetType = "ETC"
-	AssetTypeXRP  AssetType = "XRP"
-	AssetTypeCVC  AssetType = "CVC"
-	AssetTypeXLM  AssetType = "XLM"
+	AssetTypeEuro        AssetType = "EUR"
+	AssetTypeSvenskKrona AssetType = "SEK"
+	AssetTypeUSDT        AssetType = "USDT"
+	AssetTypeBTC         AssetType = "BTC"
+	AssetTypeLTC         AssetType = "LTC"
+	AssetTypeETH         AssetType = "ETH"
+	AssetTypeETC         AssetType = "ETC"
+	AssetTypeXRP         AssetType = "XRP"
+	AssetTypeCVC         AssetType = "CVC"
+	AssetTypeXLM         AssetType = "XLM"
 )
 
 type AssetPair struct {

@@ -66,15 +66,19 @@ func NextAccountLog(previous AccountEntry, tx TransactionEntry) *AccountLog {
 	// Total is negative when buy and positive on sell
 	acc.status[costUnit] = acc.status[costUnit] + tx.GetTotalPrice()
 
-	if side == SideTypeSell || side == SideTypeTransfer {
+	if asset != costUnit && tx.GetPricePerUnit() != 1.0 {
 
-		// Less asset since sold or transferred asset.
-		acc.status[asset] = acc.status[asset] - tx.GetAssetSize()
+		if side == SideTypeSell || side == SideTypeTransfer {
 
-	} else {
+			// Less asset since sold or transferred asset.
+			acc.status[asset] = acc.status[asset] - tx.GetAssetSize()
 
-		// Get more of the asset since buy or have received the asset.
-		acc.status[asset] = acc.status[asset] + tx.GetAssetSize()
+		} else {
+
+			// Get more of the asset since buy or have received the asset.
+			acc.status[asset] = acc.status[asset] + tx.GetAssetSize()
+
+		}
 
 	}
 

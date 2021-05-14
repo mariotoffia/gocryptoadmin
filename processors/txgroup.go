@@ -84,13 +84,34 @@ func (txg *TxGroupProcessor) Process(tx common.TransactionLog) {
 		txg.cache.CreateCacheAddTx(tx)
 
 		// 3. The new transaction, with same `AssetPair` do have same `SideType`
-		if other, ok := txg.cache.GetOtherSide(tx); ok {
+		if tx.Side == common.SideTypeReceive || tx.Side == common.SideTypeTransfer {
 
-			if other.IsOpen() {
-				// Close the other since
-				txg.transactions = append(txg.transactions, txg.cache.FlushCache(other))
+			// Special case, those will close all open transactions in group.
+			if items, ok := txg.cache.GetAllOtherSide(tx, tx.Side); ok {
+
+				for i := range items {
+
+					if items[i].IsOpen() {
+						// Close the other sides
+						txg.transactions = append(txg.transactions, txg.cache.FlushCache(items[i]))
+
+					}
+
+				}
+
 			}
 
+		} else {
+
+			// find buy -> sell or sell -> buy as "other"
+			if other, ok := txg.cache.GetOtherSide(tx); ok {
+
+				if other.IsOpen() {
+					// Close the other side
+					txg.transactions = append(txg.transactions, txg.cache.FlushCache(other))
+				}
+
+			}
 		}
 
 		return
