@@ -1,6 +1,10 @@
 package common
 
-import "time"
+import (
+	"fmt"
+	"sort"
+	"time"
+)
 
 // AccountEntry is a single line in the accounting.
 //
@@ -18,17 +22,12 @@ type AccountEntry interface {
 	// EnsureAccountsjust makes sure that all `AssetType`(s) do exist
 	// in account status based on the _prototype_.
 	EnsureAccounts(prototype map[AssetType]float64) AccountEntry
-	// HasTransaction checks if it has a valid transaction.
-	//
-	// This function may return `false` when the `AccountEntry` is
-	// considered as a prototype entry where `GetAccountStatus` contains
-	// e.g. all `AssetType`(s) and hence used for root construction.
-	HasTransaction() bool
 }
 
 type AccountLog struct {
 	tx     TransactionEntry
 	status map[AssetType]float64
+	sorted []string
 }
 
 // NewAccountLog creates a new `AccountLog` with `AccountLog.Status` initialied.
@@ -50,18 +49,14 @@ func NewAccountLog(tx TransactionEntry) *AccountLog {
 // the `AssetPair`(s).
 func NextAccountLog(previous AccountEntry, tx TransactionEntry) *AccountLog {
 
-	ac := NewAccountLog(tx)
+	acc := NewAccountLog(tx)
 
-	if previous == nil {
-		return ac
-	}
+	if previous != nil {
 
-	for k, v := range previous.GetAccountStatus() {
-		ac.status[k] = v
-	}
+		for k, v := range previous.GetAccountStatus() {
+			acc.status[k] = v
+		}
 
-	if !previous.HasTransaction() {
-		return ac
 	}
 
 	asset := tx.GetAssetPair().Asset
@@ -69,21 +64,23 @@ func NextAccountLog(previous AccountEntry, tx TransactionEntry) *AccountLog {
 	side := tx.GetSide()
 
 	// Total is negative when buy and positive on sell
-	ac.status[costUnit] = ac.status[costUnit] + tx.GetTotalPrice()
+	acc.status[costUnit] = acc.status[costUnit] + tx.GetTotalPrice()
 
 	if side == SideTypeSell || side == SideTypeTransfer {
 
 		// Less asset since sold or transferred asset.
-		ac.status[asset] = ac.status[asset] - tx.GetAssetSize()
+		acc.status[asset] = acc.status[asset] - tx.GetAssetSize()
 
 	} else {
 
 		// Get more of the asset since buy or have received the asset.
-		ac.status[asset] = ac.status[asset] + tx.GetAssetSize()
+		acc.status[asset] = acc.status[asset] + tx.GetAssetSize()
 
 	}
 
-	return ac
+	acc.setSortedKeys()
+
+	return acc
 
 }
 
@@ -97,15 +94,13 @@ func (acc *AccountLog) EnsureAccounts(prototype map[AssetType]float64) AccountEn
 
 	}
 
+	acc.setSortedKeys()
+
 	return acc
 }
 
 func (acc *AccountLog) GetAccountStatus() map[AssetType]float64 {
 	return acc.status
-}
-
-func (acc *AccountLog) HasTransaction() bool {
-	return acc.tx != nil
 }
 
 func (acc *AccountLog) GetID() string {
@@ -142,4 +137,59 @@ func (acc *AccountLog) GetTotalPrice() float64 {
 
 func (acc *AccountLog) GetAssetPair() AssetPair {
 	return acc.tx.GetAssetPair()
+}
+
+// ConsoleString implements the `ConsoleFormatter` interface
+func (acc *AccountLog) ConsoleHeader() string {
+	s := "Exchange\tSide\tDate\t\t\tPair\tSize\t\tPrice\t\tFee\t\tTotal"
+
+	for _, v := range acc.sorted {
+		s += fmt.Sprintf("\t\t%s", v)
+	}
+
+	s += "\n---------------------------------------------------------" +
+		"-----------------------------------------------------" +
+		"-----------------------------------------------------" +
+		"-----------------------------------------------------"
+
+	return s
+}
+
+// ConsoleString implements the `ConsoleFormatter` interface
+func (acc *AccountLog) ConsoleString() string {
+
+	s := fmt.Sprintf(
+		"%s\t%s\t%s\t%s\t%f\t%f\t%f\t%f",
+		acc.GetExchange(),
+		acc.GetSide(),
+		acc.GetCreatedAt().Format("2006-01-02 15:04:05.999999999"),
+		acc.GetAssetPair().String(),
+		acc.GetAssetSize(),
+		acc.GetPricePerUnit(),
+		acc.GetFee(),
+		acc.GetTotalPrice(),
+	)
+
+	for _, v := range acc.sorted {
+
+		s += fmt.Sprintf("\t%f", acc.status[AssetType(v)])
+
+	}
+
+	return s
+}
+
+func (acc *AccountLog) setSortedKeys() {
+
+	keys := make([]string, len(acc.status))
+	i := 0
+
+	for k := range acc.status {
+		keys[i] = string(k)
+		i++
+	}
+
+	sort.Strings(keys)
+	acc.sorted = keys
+
 }

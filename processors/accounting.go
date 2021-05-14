@@ -21,9 +21,10 @@ func (ap *AccountingProcessor) Reset() {
 
 func (ap *AccountingProcessor) Process(tx common.TransactionEntry) {
 
-	ap.entries = append(
-		ap.entries, common.NextAccountLog(ap.previous, tx),
-	)
+	acc := common.NextAccountLog(ap.previous, tx)
+
+	ap.entries = append(ap.entries, acc)
+	ap.previous = acc
 
 }
 
@@ -48,5 +49,6 @@ func (ap *AccountingProcessor) Flush() []common.TransactionEntry {
 
 	}
 
+	ap.Reset()
 	return list
 }
