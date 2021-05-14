@@ -8,37 +8,15 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/common"
 )
 
-type TxGroupCacheItem struct {
-	next time.Time
-	tx   common.TxGroupEntry
-}
-
-// WithinWindow checks if the _tx_ is within the current window in the cache item.
-func (txi *TxGroupCacheItem) WithinWindow(tx common.TransactionLog) bool {
-
-	return tx.CreatedAt.Before(txi.next)
-
-}
-
-// IsOpen returns `true` if there are any entries in the `Tx.Tx` field, i.e. any transactions in the
-// group.
-func (txi *TxGroupCacheItem) IsOpen() bool {
-
-	return len(txi.tx.Tx) != 0
-
-}
-
-type TxGroupCache struct {
-	cache     map[string]*TxGroupCacheItem
-	groupId   int64
-	secwindow time.Duration
-}
-
-func NewTxGroupCache(secwindow time.Duration) *TxGroupCache {
+// NewTxGroupCache creates a new group with specified _timewindow_.
+//
+// The _timewindow_ specified the max time that this group would capture
+// in terms of `common.TransactionLog.CreatedAt`.
+func NewTxGroupCache(timewindow time.Duration) *TxGroupCache {
 
 	return &TxGroupCache{
-		cache:     map[string]*TxGroupCacheItem{},
-		secwindow: secwindow,
+		cache:      map[string]*TxGroupCacheItem{},
+		timewindow: timewindow,
 	}
 
 }
@@ -111,13 +89,16 @@ func (txg *TxGroupCache) GetOtherSide(
 	return
 }
 
-// GetOthersWithSameCostUnit will return all caches that do have transactions with same
-// `CostUnit` as the `tx.Asset`.
+// GetByExchangeCostUnit will return all `TxGroupCacheItem` instances that do have
+// transactions with same `CostUnit` and exchange as the `tx.Asset`.
 //
-// Usually, the cost unit is in EUR or $ but it may be e.g. LTC, BTC and if e.g. _tx_ do have
-// `Asset` of _BTC_, and there exist a few cache items with `CostUnit` of _BTC_ (e.g. _XRP-BTC_),
+// Usually, the cost unit is in EUR or $ but it may be e.g. LTC, BTC and if e.g. _assetType_ is
+// _BTC_, and there exist a few cache items with `CostUnit` of _BTC_ (e.g. _XRP-BTC_),
 // those will be returned.
-func (txg *TxGroupCache) GetOthersWithSameCostUnit(tx common.TransactionLog) []*TxGroupCacheItem {
+func (txg *TxGroupCache) GetByExchangeCostUnit(
+	exchange string,
+	assetType common.AssetType,
+) []*TxGroupCacheItem {
 
 	var res []*TxGroupCacheItem
 
@@ -127,8 +108,8 @@ func (txg *TxGroupCache) GetOthersWithSameCostUnit(tx common.TransactionLog) []*
 			c := kv.(linq.KeyValue).Value.(*TxGroupCacheItem)
 			e := c.tx
 
-			return e.GetExchange() == tx.GetExchange() &&
-				e.GetAssetPair().CostUnit == tx.GetAssetPair().Asset &&
+			return e.GetExchange() == exchange &&
+				e.GetAssetPair().CostUnit == assetType &&
 				c.IsOpen()
 
 		}).
@@ -157,7 +138,7 @@ func (txg *TxGroupCache) CreateCacheAddTx(tx common.TransactionLog) *TxGroupCach
 	}
 
 	item := &TxGroupCacheItem{
-		next: tx.CreatedAt.Add(time.Second * txg.secwindow),
+		next: tx.CreatedAt.Add(txg.timewindow),
 	}
 
 	txg.groupId++

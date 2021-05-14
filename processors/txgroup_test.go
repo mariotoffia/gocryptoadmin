@@ -3,6 +3,7 @@ package processors
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/txlog"
 	"github.com/mariotoffia/gocryptoadmin/txlog/coinbasepro"
@@ -16,7 +17,7 @@ func TestReadCoinbasedTxLogFiles(t *testing.T) {
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		Read()
 
-	proc := NewTxGroupProcessor(0 /*default window*/) // time.Duration(30 * 60)
+	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/) // time.Duration(30 * 60)
 
 	for _, tx := range tx {
 		proc.Process(tx)

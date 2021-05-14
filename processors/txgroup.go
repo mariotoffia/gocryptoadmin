@@ -10,7 +10,7 @@ import (
 type TxGroupProcessor struct {
 	cache          *procutils.TxGroupCache
 	transactions   []common.TxGroupEntry
-	secwindow      time.Duration
+	timewindow     time.Duration
 	flushProcessor common.TxGroupProcessor
 }
 
@@ -21,16 +21,18 @@ type TxGroupProcessor struct {
 //
 // By default it assigns a `ChronologicalProcessor`, this can be cleared by
 // setting `UseFlushProcessor(nil)`.
-func NewTxGroupProcessor(secwindow time.Duration) *TxGroupProcessor {
+//
+// If _timewindow_ is equal or less than zero, it will default to 5 minutes.
+func NewTxGroupProcessor(timewindow time.Duration) *TxGroupProcessor {
 
-	if secwindow <= 0 {
-		secwindow = time.Duration(5 * 60)
+	if timewindow <= 0 {
+		timewindow = time.Duration(time.Minute * 5)
 	}
 
 	return &TxGroupProcessor{
-		cache:          procutils.NewTxGroupCache(secwindow),
+		cache:          procutils.NewTxGroupCache(timewindow),
 		transactions:   []common.TxGroupEntry{},
-		secwindow:      secwindow,
+		timewindow:     timewindow,
 		flushProcessor: NewChronologicalGroupTxEntryProcessor(),
 	}
 
@@ -54,7 +56,7 @@ func (txg *TxGroupProcessor) UseFlushProcessor(
 func (txg *TxGroupProcessor) Reset() {
 
 	txg.transactions = []common.TxGroupEntry{}
-	txg.cache = procutils.NewTxGroupCache(txg.secwindow)
+	txg.cache = procutils.NewTxGroupCache(txg.timewindow)
 
 }
 
@@ -101,13 +103,16 @@ func (txg *TxGroupProcessor) Process(tx common.TransactionLog) {
 
 	}
 
-	// 4. The Asset part of the Open `Transaction` is not part of
-	//    a `CostUnit` in the new `Transaction`
-	others := txg.cache.GetOthersWithSameCostUnit(tx)
+	// 4. The Asset part of the Open `Transaction` is not part of a `CostUnit` in the new `Transaction`
+	//
+	// Since _tx_ is not  yet in _txg_ cache, it will find "all others" with same CostUnit.
+	others := txg.cache.GetByExchangeCostUnit(
+		tx.GetExchange(), tx.GetAssetPair().Asset,
+	)
+
 	if len(others) > 0 {
 
-		// Need to close them since this tx is buying or selling
-		// same asset as been used in a cost unit in others, i.e.
+		// Need to close them since this tx is buying or selling same asset as been used in a cost unit in others, i.e.
 		// balance of this asset is either increasing or declining.
 		for i := range others {
 			txg.transactions = append(txg.transactions, txg.cache.FlushCache(others[i]))
