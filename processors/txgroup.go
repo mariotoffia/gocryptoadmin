@@ -43,6 +43,9 @@ func NewTxGroupProcessor(timewindow time.Duration) *TxGroupProcessor {
 // If _flushProcessor_ is `nil` it will remove the processor and nothing is processed before
 // the records are returned during `Flush`. This may be useful when external processing is much
 // more efficient.
+//
+// Since, `TxGroupProcessor` uses `ChronologicalTxEntryProcessor` by default, if sorting in `Flush`
+// operation is wanted, just set it to `nil`.
 func (txg *TxGroupProcessor) UseFlushProcessor(
 	flushProcessor common.TxGroupProcessor,
 ) *TxGroupProcessor {
@@ -135,6 +138,11 @@ func (txg *TxGroupProcessor) ProcessMany(tx []common.TransactionLog) {
 
 }
 
+// Flush will flush all caches and runs the flush processor (if any attached).
+//
+// The flushprocessor will be invoked by `TxGroupProcessor.ProcessMany`, after
+// it has been `TxGroupProcessor.Reset`. Lastly it fill perform a `TxGroupProcessor.Flush`
+// on it.
 func (txg *TxGroupProcessor) Flush() []common.TxGroupEntry {
 
 	txg.transactions = append(txg.transactions, txg.cache.FlushAllCaches()...)

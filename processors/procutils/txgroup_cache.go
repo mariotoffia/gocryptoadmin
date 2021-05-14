@@ -41,11 +41,15 @@ func (txg *TxGroupCache) FlushCache(item *TxGroupCacheItem) common.TxGroupEntry 
 	return tx
 }
 
+// FlushAllCaches iterates the cache and returns all `TxGroupCacheItem.IsOpen` entries.
+//
+// Before returning, it will clear the complete cache, hence empty.
 func (txg *TxGroupCache) FlushAllCaches() []common.TxGroupEntry {
 
 	tx := []common.TxGroupEntry{}
 	for _, cache := range txg.cache {
 
+		// Only items that do have transactions left in it
 		if cache.IsOpen() {
 			tx = append(tx, cache.tx)
 		}
@@ -81,7 +85,9 @@ func (txg *TxGroupCache) GetOtherSide(
 		side = common.SideTypeReceive
 	default:
 		panic(
-			fmt.Sprintf("not supported sidetype in get other side operation: %s", string(tx.Side)),
+			fmt.Sprintf(
+				"not supported sidetype in get other side operation: %s", string(tx.Side),
+			),
 		)
 	}
 
