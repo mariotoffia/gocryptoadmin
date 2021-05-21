@@ -8,27 +8,59 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/common"
 )
 
+// CacheKeyRenderer renders a key to use when accessing the cache
+type CacheKeyRenderer func(tx common.TransactionEntry, side common.SideType) string
+
+type TxGroupCache struct {
+	cache      map[string]*TxGroupCacheItem
+	groupId    int64
+	timewindow time.Duration
+	render     CacheKeyRenderer
+}
+
 // NewTxGroupCache creates a new group with specified _timewindow_.
 //
 // The _timewindow_ specified the max time that this group would capture
 // in terms of `common.TransactionLog.CreatedAt`.
-func NewTxGroupCache(timewindow time.Duration) *TxGroupCache {
+func NewTxGroupCache(timewindow time.Duration, render CacheKeyRenderer) *TxGroupCache {
+
+	if render == nil {
+
+		render = func(tx common.TransactionEntry, side common.SideType) string {
+
+			return fmt.Sprintf(
+				"%s_%s_%s", tx.GetExchange(), tx.GetAssetPair(), side,
+			)
+
+		}
+
+	}
 
 	return &TxGroupCache{
 		cache:      map[string]*TxGroupCacheItem{},
 		timewindow: timewindow,
+		render:     render,
 	}
 
 }
 
 // GetCache gets the cache item associated with the transaction type.
 //
-// It uses the _Exchange_, _AssetPair_, and _Side_ to key the cache item.
+// It uses submitted `CacheKeyRenderer` to key the cache item.
 func (txg *TxGroupCache) GetCache(
 	tx common.TransactionLog,
+	override CacheKeyRenderer,
 ) (item *TxGroupCacheItem, found bool) {
 
-	item, found = txg.cache[tx.Exchange+tx.AssetPair.String()+string(tx.Side)]
+	var key string
+
+	if override != nil {
+		key = override(&tx, tx.GetSide())
+	} else {
+		key = txg.render(&tx, tx.GetSide())
+	}
+
+	item, found = txg.cache[key]
 	return
 
 }
@@ -37,7 +69,9 @@ func (txg *TxGroupCache) GetCache(
 func (txg *TxGroupCache) FlushCache(item *TxGroupCacheItem) common.TxGroupEntry {
 
 	tx := item.tx
-	delete(txg.cache, tx.GetExchange()+tx.GetAssetPair().String()+string(tx.GetSide()))
+	key := txg.render(&tx, tx.GetSide())
+
+	delete(txg.cache, key)
 	return tx
 }
 
@@ -59,6 +93,41 @@ func (txg *TxGroupCache) FlushAllCaches() []common.TxGroupEntry {
 	txg.cache = map[string]*TxGroupCacheItem{}
 
 	return tx
+}
+
+// GetAssetPairWhenNonFIAT returns all cache items that matches either `common.AssetPair.Asset`
+// or `common.AssetPair.CostUnit`.
+//
+// It checks if _Asset_ or _CostUnit_ is Crypto before checking each end of the cached item.
+func (txg *TxGroupCache) GetAssetPairWhenNonFIAT(
+	assetPair common.AssetPair,
+) (items []*TxGroupCacheItem, found bool) {
+
+	items = []*TxGroupCacheItem{}
+
+	for _, itm := range txg.cache {
+
+		ap := itm.tx.GetAssetPair()
+
+		if assetPair.Asset.IsCrypto() && (ap.Asset == assetPair.Asset ||
+			ap.CostUnit == assetPair.Asset) {
+
+			items = append(items, itm)
+			continue
+
+		}
+
+		if assetPair.CostUnit.IsCrypto() && (ap.Asset == assetPair.CostUnit ||
+			ap.CostUnit == assetPair.CostUnit) {
+
+			items = append(items, itm)
+
+		}
+
+	}
+
+	return items, len(items) > 0
+
 }
 
 // GetAllOtherSide will return all sides found in cache, except, in param side.
@@ -88,7 +157,8 @@ func (txg *TxGroupCache) GetAllOtherSide(
 
 	for _, s := range other {
 
-		if item, found := txg.cache[tx.Exchange+tx.AssetPair.String()+string(s)]; found {
+		key := txg.render(&tx, s)
+		if item, found := txg.cache[key]; found {
 			items = append(items, item)
 		}
 
@@ -111,7 +181,7 @@ func (txg *TxGroupCache) GetOtherSide(
 ) (item *TxGroupCacheItem, found bool) {
 
 	var side common.SideType
-	switch tx.Side {
+	switch tx.GetSide() {
 	case common.SideTypeBuy:
 		side = common.SideTypeSell
 	case common.SideTypeSell:
@@ -128,7 +198,8 @@ func (txg *TxGroupCache) GetOtherSide(
 		)
 	}
 
-	item, found = txg.cache[tx.Exchange+tx.AssetPair.String()+string(side)]
+	key := txg.render(&tx, side)
+	item, found = txg.cache[key]
 	return
 }
 
@@ -169,13 +240,12 @@ func (txg *TxGroupCache) GetByExchangeCostUnit(
 // It will panic if the cache item is already created.
 func (txg *TxGroupCache) CreateCacheAddTx(tx common.TransactionLog) *TxGroupCacheItem {
 
-	if _, ok := txg.cache[tx.Exchange+tx.AssetPair.String()+string(tx.Side)]; ok {
+	key := txg.render(&tx, tx.Side)
+
+	if _, ok := txg.cache[key]; ok {
 
 		panic(
-			fmt.Sprintf(
-				"cache item already created for: %s",
-				tx.Exchange+tx.AssetPair.String()+string(tx.Side),
-			),
+			fmt.Sprintf("cache item already created for: %s", key),
 		)
 
 	}
@@ -189,7 +259,7 @@ func (txg *TxGroupCache) CreateCacheAddTx(tx common.TransactionLog) *TxGroupCach
 	item.tx.ID = fmt.Sprint(txg.groupId)
 	item.tx.AddTransactionEntry(tx)
 
-	txg.cache[tx.Exchange+tx.AssetPair.String()+string(tx.Side)] = item
+	txg.cache[key] = item
 
 	return item
 
@@ -200,7 +270,9 @@ func (txg *TxGroupCache) CreateCacheAddTx(tx common.TransactionLog) *TxGroupCach
 // If the cache item do not exist, it will panic.
 func (txg *TxGroupCache) AddTransactionToCache(tx common.TransactionLog) {
 
-	if item, ok := txg.cache[tx.Exchange+tx.AssetPair.String()+string(tx.Side)]; ok {
+	key := txg.render(&tx, tx.Side)
+
+	if item, ok := txg.cache[key]; ok {
 
 		item.tx.AddTransactionEntry(tx)
 		return
@@ -208,8 +280,7 @@ func (txg *TxGroupCache) AddTransactionToCache(tx common.TransactionLog) {
 
 	panic(
 		fmt.Sprintf(
-			"no cache item created for: %s (cannot add transaction log)",
-			tx.Exchange+tx.AssetPair.String()+string(tx.Side),
+			"no cache item created for: %s (cannot add transaction log)", key,
 		),
 	)
 }

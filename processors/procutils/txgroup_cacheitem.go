@@ -26,9 +26,3 @@ func (txi *TxGroupCacheItem) IsOpen() bool {
 	return len(txi.tx.Tx) != 0
 
 }
-
-type TxGroupCache struct {
-	cache      map[string]*TxGroupCacheItem
-	groupId    int64
-	timewindow time.Duration
-}
