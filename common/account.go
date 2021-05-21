@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+// AccountStatus contains all assets and their current status.
+type AccountStatus map[AssetType]float64
+
+// ExchangeAccountStatus contains the account status for each
+// exchange. The _"all"_, the the complete account status.
+type ExchangeAccountStatus map[string]AccountStatus
+
 // AccountEntry is a single line in the accounting.
 //
 // Each entry may contain one or more `AssetType` with
@@ -18,15 +25,15 @@ type AccountEntry interface {
 	// Derives from TransactionEntry since it is attached to it.
 	TransactionEntry
 	// GetAccountStatus returns the current value in the account.
-	GetAccountStatus() map[AssetType]float64
+	GetAccountStatus() AccountStatus
 	// EnsureAccountsjust makes sure that all `AssetType`(s) do exist
 	// in account status based on the _prototype_.
-	EnsureAccounts(prototype map[AssetType]float64) AccountEntry
+	EnsureAccounts(prototype AccountStatus) AccountEntry
 }
 
 type AccountLog struct {
 	tx     TransactionEntry
-	status map[AssetType]float64
+	status AccountStatus
 	sorted []string
 }
 
@@ -35,7 +42,7 @@ func NewAccountLog(tx TransactionEntry) *AccountLog {
 
 	return &AccountLog{
 		tx:     tx,
-		status: map[AssetType]float64{},
+		status: AccountStatus{},
 	}
 
 }
@@ -88,7 +95,7 @@ func NextAccountLog(previous AccountEntry, tx TransactionEntry) *AccountLog {
 
 }
 
-func (acc *AccountLog) EnsureAccounts(prototype map[AssetType]float64) AccountEntry {
+func (acc *AccountLog) EnsureAccounts(prototype AccountStatus) AccountEntry {
 
 	for k := range prototype {
 
@@ -103,7 +110,7 @@ func (acc *AccountLog) EnsureAccounts(prototype map[AssetType]float64) AccountEn
 	return acc
 }
 
-func (acc *AccountLog) GetAccountStatus() map[AssetType]float64 {
+func (acc *AccountLog) GetAccountStatus() AccountStatus {
 	return acc.status
 }
 

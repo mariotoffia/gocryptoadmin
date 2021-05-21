@@ -20,7 +20,7 @@ func TestAccountingCoinbaseProFiles(t *testing.T) {
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		Read()
 
-	proc := NewTxGroupProcessor(time.Hour * 20 /*2h*/) // time.Duration(30 * 60)
+	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
 		proc.Process(tx)
@@ -57,7 +57,7 @@ func TestReceiveAndSellAllShallHaveOnlyEuroLeft(t *testing.T) {
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		ReadBuffer("coinbasepro", utils.ReadFile("testfiles/receivetest.csv"))
 
-	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/) // time.Duration(30 * 60)
+	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
 		proc.Process(tx)
@@ -82,7 +82,7 @@ func TestReceiveAndSellReceive(t *testing.T) {
 		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
 		ReadBuffer("coinbasepro", utils.ReadFile("testfiles/receivetest-ii.csv"))
 
-	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/) // time.Duration(30 * 60)
+	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
 		proc.Process(tx)
