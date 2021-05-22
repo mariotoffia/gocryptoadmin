@@ -126,6 +126,10 @@ func (acc *AccountLog) GetSide() SideType {
 	return acc.tx.GetSide()
 }
 
+func (acc *AccountLog) GetSideIdentifier() string {
+	return acc.tx.GetSideIdentifier()
+}
+
 func (acc *AccountLog) GetCreatedAt() time.Time {
 	return acc.tx.GetCreatedAt()
 }
@@ -152,14 +156,14 @@ func (acc *AccountLog) GetAssetPair() AssetPair {
 
 // ConsoleString implements the `ConsoleFormatter` interface
 func (acc *AccountLog) ConsoleHeader() string {
-	s := "Exchange\tSide\t\tDate\t\t\tPair\tSize\t\tPrice\t\tFee\t\tTotal"
+	s := "Exchange\tSide\t\tSide Identifier\t\tDate\t\t\tPair\tSize\t\tPrice\t\tFee\t\tTotal"
 
 	for _, v := range acc.sorted {
 		s += fmt.Sprintf("\t\t%s", v)
 	}
 
-	s += "\n----------------------------------------------" +
-		"----------------------------------------------------------------------------------"
+	s += "\n-----------------------------------------------------------------------------------" +
+		"---------------------------------------------------------------------"
 
 	for i := 0; i < len(acc.sorted); i++ {
 		s += "----------------"
@@ -175,9 +179,10 @@ func (acc *AccountLog) ConsoleString() string {
 	if acc.GetSide() == SideTypeTransfer {
 
 		s = fmt.Sprintf(
-			"%s\t\t%s\t%s\t%s\t%f\t%f\t%f\t%f",
+			"%s\t\t%s\t%s\t\t\t%s\t%s\t%f\t%f\t%f\t%f",
 			acc.GetExchange(),
 			acc.GetSide(),
+			acc.GetSideIdentifier(),
 			acc.GetCreatedAt().Format("2006-01-02 15:04:05.999999999"),
 			acc.GetAssetPair().String(),
 			acc.GetAssetSize(),
@@ -189,9 +194,10 @@ func (acc *AccountLog) ConsoleString() string {
 	} else {
 
 		s = fmt.Sprintf(
-			"%s\t\t%s\t\t%s\t%s\t%f\t%f\t%f\t%f",
+			"%s\t\t%s\t\t%s\t\t\t%s\t%s\t%f\t%f\t%f\t%f",
 			acc.GetExchange(),
 			acc.GetSide(),
+			acc.GetSideIdentifier(),
 			acc.GetCreatedAt().Format("2006-01-02 15:04:05.999999999"),
 			acc.GetAssetPair().String(),
 			acc.GetAssetSize(),

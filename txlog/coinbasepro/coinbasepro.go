@@ -1,7 +1,11 @@
 package coinbasepro
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
+	"io"
+	"os"
 	"time"
 
 	"github.com/jszwec/csvutil"
@@ -18,17 +22,48 @@ func NewTransactionLogReader() common.TransactionLogReader {
 
 func (c *cbp) Unmarshal(data []byte) []common.TransactionLog {
 
-	var v []CbpTransaction
-	err := csvutil.Unmarshal(data, &v)
+	dec, err := csvutil.NewDecoder(csv.NewReader(bytes.NewReader(data)))
 
 	if err != nil {
 		panic(err)
 	}
 
+	header := dec.Header()
+
 	tx := []common.TransactionLog{}
 
-	for i := range v {
-		tx = append(tx, c.Transform(v[i]))
+	for {
+		cbp := CbpTransaction{}
+		sideIdentifier := ""
+
+		if err = dec.Decode(&cbp); err == io.EOF {
+
+			break
+
+		} else if err != nil {
+
+			panic(err)
+
+		}
+
+		for _, i := range dec.Unused() {
+
+			if header[i] == "sideid" {
+
+				sideIdentifier = dec.Record()[i]
+
+			} else {
+
+				fmt.Fprintf(
+					os.Stderr, "[coinbasepro] Unknown field: %s = %s", header[i], dec.Record()[i],
+				)
+
+			}
+
+		}
+
+		tx = append(tx, c.Transform(&cbp, sideIdentifier))
+
 	}
 
 	return tx
@@ -36,32 +71,23 @@ func (c *cbp) Unmarshal(data []byte) []common.TransactionLog {
 
 // Transform will get the instance pointer returned from `Entry`
 // and is expected to transform to a `Transaction`
-func (c *cbp) Transform(entry interface{}) common.TransactionLog {
+func (c *cbp) Transform(v *CbpTransaction, sideIdentifier string) common.TransactionLog {
 
-	if v, ok := entry.(CbpTransaction); ok {
-
-		return common.TransactionLog{
-			ID:           v.ID,
-			Exchange:     "coinbase-pro",
-			Side:         v.Side,
-			CreatedAt:    v.CreatedAt,
-			AssetSize:    v.Size,
-			PricePerUnit: v.Price,
-			Fee:          v.Fee,
-			TotalPrice:   v.Total,
-			AssetPair: common.AssetPair{
-				Asset:    common.AssetType(v.Unit),
-				CostUnit: common.AssetType(v.CostUnit),
-			},
-		}
+	return common.TransactionLog{
+		ID:             v.ID,
+		Exchange:       "coinbase-pro",
+		Side:           v.Side,
+		SideIdentifier: sideIdentifier,
+		CreatedAt:      v.CreatedAt,
+		AssetSize:      v.Size,
+		PricePerUnit:   v.Price,
+		Fee:            v.Fee,
+		TotalPrice:     v.Total,
+		AssetPair: common.AssetPair{
+			Asset:    common.AssetType(v.Unit),
+			CostUnit: common.AssetType(v.CostUnit),
+		},
 	}
-
-	panic(
-		fmt.Sprintf(
-			"Incorrect entry type: %T, expecting *coinbasepro.CbpTransaction", entry,
-		),
-	)
-
 }
 
 type CbpCost struct {

@@ -79,6 +79,16 @@ func (txg *TxGroupEntry) GetSide() SideType {
 
 }
 
+func (txg *TxGroupEntry) GetSideIdentifier() string {
+
+	if len(txg.Tx) == 0 {
+		return ""
+	}
+
+	return txg.Tx[0].SideIdentifier
+
+}
+
 func (txg *TxGroupEntry) GetCreatedAt() time.Time {
 
 	if len(txg.Tx) == 0 {

@@ -23,6 +23,7 @@ type TransactionEntry interface {
 	GetID() string
 	GetExchange() string
 	GetSide() SideType
+	GetSideIdentifier() string
 	GetCreatedAt() time.Time
 	GetAssetSize() float64
 	GetPricePerUnit() float64
@@ -35,14 +36,15 @@ type TransactionEntry interface {
 // TransactionLog represents a single transaction
 //
 type TransactionLog struct {
-	ID           string    `csv:"id"       json:"id"`
-	Exchange     string    `csv:"exchange" json:"exchange"`
-	Side         SideType  `csv:"side"     json:"side"`
-	CreatedAt    time.Time `csv:"created"  json:"created"`
-	AssetSize    float64   `csv:"size"     json:"size"`
-	PricePerUnit float64   `csv:"price"    json:"price"`
-	Fee          float64   `csv:"fee"      json:"fee"`
-	TotalPrice   float64   `csv:"total"    json:"total"`
+	ID             string    `csv:"id"       json:"id"`
+	Exchange       string    `csv:"exchange" json:"exchange"`
+	Side           SideType  `csv:"side"     json:"side"`
+	SideIdentifier string    `csv:"sideid"   json:"sideid,omitempty"`
+	CreatedAt      time.Time `csv:"created"  json:"created"`
+	AssetSize      float64   `csv:"size"     json:"size"`
+	PricePerUnit   float64   `csv:"price"    json:"price"`
+	Fee            float64   `csv:"fee"      json:"fee"`
+	TotalPrice     float64   `csv:"total"    json:"total"`
 
 	AssetPair
 }
@@ -57,6 +59,10 @@ func (tx *TransactionLog) GetExchange() string {
 
 func (tx *TransactionLog) GetSide() SideType {
 	return tx.Side
+}
+
+func (tx *TransactionLog) GetSideIdentifier() string {
+	return tx.SideIdentifier
 }
 
 func (tx *TransactionLog) GetCreatedAt() time.Time {

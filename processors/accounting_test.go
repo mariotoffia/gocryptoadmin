@@ -54,8 +54,8 @@ func TestAccountingCoinbaseProFiles(t *testing.T) {
 func TestReceiveAndSellAllShallHaveOnlyEuroLeft(t *testing.T) {
 
 	tx := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
-		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
-		ReadBuffer("coinbasepro", utils.ReadFile("testfiles/receivetest.csv"))
+		RegisterReader("cbp", coinbasepro.NewTransactionLogReader()).
+		ReadBufferAsExchange("cbp", utils.ReadFile("testfiles/receivetest.csv"))
 
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
@@ -76,11 +76,61 @@ func TestReceiveAndSellAllShallHaveOnlyEuroLeft(t *testing.T) {
 	assert.Equal(t, float64(750.00135), txa[1].(common.AccountEntry).GetAccountStatus()["EUR"])
 }
 
+func TestWhenSideIdPresentItShallBeOnTxLog(t *testing.T) {
+
+	tx := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
+		RegisterReader("cbp", coinbasepro.NewTransactionLogReader()).
+		ReadBufferAsExchange("cbp", utils.ReadFile("testfiles/receivetest.csv"))
+
+	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
+
+	for _, tx := range tx {
+		proc.Process(tx)
+	}
+
+	txg := proc.Flush()
+
+	acc := NewAccountingProcessor(common.ExchangeAll)
+	for i := range txg {
+		acc.Process(&txg[i]) // Since accepting interface, use indexer
+	}
+
+	txa := acc.Flush()
+
+	assert.Equal(t, "kraken", txa[0].GetSideIdentifier())
+	assert.Equal(t, "", txa[1].GetSideIdentifier())
+}
+
+func TestWhenSideIdNotPresentItShallNotBeOnTxLog(t *testing.T) {
+
+	tx := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
+		RegisterReader("cbp", coinbasepro.NewTransactionLogReader()).
+		ReadBufferAsExchange("cbp", utils.ReadFile("testfiles/receivetest-iii.csv"))
+
+	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
+
+	for _, tx := range tx {
+		proc.Process(tx)
+	}
+
+	txg := proc.Flush()
+
+	acc := NewAccountingProcessor(common.ExchangeAll)
+	for i := range txg {
+		acc.Process(&txg[i]) // Since accepting interface, use indexer
+	}
+
+	txa := acc.Flush()
+
+	assert.Equal(t, "", txa[0].GetSideIdentifier())
+	assert.Equal(t, "", txa[1].GetSideIdentifier())
+}
+
 func TestReceiveAndSellReceive(t *testing.T) {
 
 	tx := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
-		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
-		ReadBuffer("coinbasepro", utils.ReadFile("testfiles/receivetest-ii.csv"))
+		RegisterReader("cbp", coinbasepro.NewTransactionLogReader()).
+		ReadBufferAsExchange("cbp", utils.ReadFile("testfiles/receivetest-ii.csv"))
 
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
