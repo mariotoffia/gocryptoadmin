@@ -28,7 +28,7 @@ func TestAccountingCoinbaseProFiles(t *testing.T) {
 
 	txg := proc.Flush()
 
-	acc := NewAccountingProcessor()
+	acc := NewAccountingProcessor("all")
 	for i := range txg {
 		acc.Process(&txg[i]) // Since accepting interface, use indexer
 	}
@@ -65,7 +65,7 @@ func TestReceiveAndSellAllShallHaveOnlyEuroLeft(t *testing.T) {
 
 	txg := proc.Flush()
 
-	acc := NewAccountingProcessor()
+	acc := NewAccountingProcessor("all")
 	for i := range txg {
 		acc.Process(&txg[i]) // Since accepting interface, use indexer
 	}
@@ -90,7 +90,7 @@ func TestReceiveAndSellReceive(t *testing.T) {
 
 	txg := proc.Flush()
 
-	acc := NewAccountingProcessor()
+	acc := NewAccountingProcessor("all")
 	for i := range txg {
 		acc.Process(&txg[i]) // Since accepting interface, use indexer
 	}
@@ -147,7 +147,7 @@ func TestMultiExchange(t *testing.T) {
 
 	txg := proc.Flush()
 
-	acc := NewAccountingProcessor()
+	acc := NewAccountingProcessor("all")
 	for i := range txg {
 		acc.Process(&txg[i]) // Since accepting interface, use indexer
 	}

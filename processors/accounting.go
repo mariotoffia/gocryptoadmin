@@ -5,12 +5,24 @@ import "github.com/mariotoffia/gocryptoadmin/common"
 type AccountingProcessor struct {
 	entries  []common.AccountEntry
 	previous common.AccountEntry
+	exchange string
 }
 
-func NewAccountingProcessor() *AccountingProcessor {
+// NewAccountingProcessor creates a new accounting processor that will
+// keep book on each account status for both _Asset_ and _CostUnit_ to
+// handle transaction log balance.
+//
+// The _exchange_ may be any of the exchanges, if it is a empty string
+// it will accept *any* exchange and is alias for all.
+func NewAccountingProcessor(exchange string) *AccountingProcessor {
+
+	if exchange == "" {
+		exchange = "all"
+	}
 
 	return &AccountingProcessor{
-		entries: []common.AccountEntry{},
+		entries:  []common.AccountEntry{},
+		exchange: exchange,
 	}
 
 }
@@ -20,6 +32,10 @@ func (ap *AccountingProcessor) Reset() {
 }
 
 func (ap *AccountingProcessor) Process(tx common.TransactionEntry) {
+
+	if ap.exchange != "all" && tx.GetExchange() != ap.exchange {
+		return
+	}
 
 	acc := common.NextAccountLog(ap.previous, tx)
 
