@@ -17,7 +17,7 @@ type AccountingProcessor struct {
 func NewAccountingProcessor(exchange string) *AccountingProcessor {
 
 	if exchange == "" {
-		exchange = "all"
+		exchange = common.ExchangeAll
 	}
 
 	return &AccountingProcessor{
@@ -33,8 +33,11 @@ func (ap *AccountingProcessor) Reset() {
 
 func (ap *AccountingProcessor) Process(tx common.TransactionEntry) {
 
-	if ap.exchange != "all" && tx.GetExchange() != ap.exchange {
+	if ap.exchange != common.ExchangeAll &&
+		tx.GetExchange() != ap.exchange {
+
 		return
+
 	}
 
 	acc := common.NextAccountLog(ap.previous, tx)

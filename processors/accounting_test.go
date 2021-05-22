@@ -28,7 +28,7 @@ func TestAccountingCoinbaseProFiles(t *testing.T) {
 
 	txg := proc.Flush()
 
-	acc := NewAccountingProcessor("all")
+	acc := NewAccountingProcessor(common.ExchangeAll)
 	for i := range txg {
 		acc.Process(&txg[i]) // Since accepting interface, use indexer
 	}
@@ -65,7 +65,7 @@ func TestReceiveAndSellAllShallHaveOnlyEuroLeft(t *testing.T) {
 
 	txg := proc.Flush()
 
-	acc := NewAccountingProcessor("all")
+	acc := NewAccountingProcessor(common.ExchangeAll)
 	for i := range txg {
 		acc.Process(&txg[i]) // Since accepting interface, use indexer
 	}
@@ -90,7 +90,7 @@ func TestReceiveAndSellReceive(t *testing.T) {
 
 	txg := proc.Flush()
 
-	acc := NewAccountingProcessor("all")
+	acc := NewAccountingProcessor(common.ExchangeAll)
 	for i := range txg {
 		acc.Process(&txg[i]) // Since accepting interface, use indexer
 	}
@@ -116,7 +116,7 @@ func TestReceiveAndSellReceive(t *testing.T) {
 	assert.Equal(t, float64(750.00135), txa[1].(common.AccountEntry).GetAccountStatus()["EUR"])
 }
 
-func TestMultiExchange(t *testing.T) {
+func TestMultiExchangeSingleAccount(t *testing.T) {
 
 	txr := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
 		RegisterReader("lf", coinbasepro.NewTransactionLogReader()).
@@ -147,7 +147,7 @@ func TestMultiExchange(t *testing.T) {
 
 	txg := proc.Flush()
 
-	acc := NewAccountingProcessor("all")
+	acc := NewAccountingProcessor(common.ExchangeAll)
 	for i := range txg {
 		acc.Process(&txg[i]) // Since accepting interface, use indexer
 	}

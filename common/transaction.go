@@ -14,6 +14,11 @@ const (
 	SideTypeTransfer SideType = "TRANSFER"
 )
 
+const (
+	// ExchangeAll represents all exchanges
+	ExchangeAll string = "all"
+)
+
 type TransactionEntry interface {
 	GetID() string
 	GetExchange() string
