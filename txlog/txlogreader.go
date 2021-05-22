@@ -78,6 +78,30 @@ func (lr *TxLogReaderImpl) ReadBuffer(readerName string, data []byte) []common.T
 
 }
 
+func (lr *TxLogReaderImpl) ReadBufferAsExchange(
+	readerName string,
+	data []byte,
+) []common.TransactionLog {
+
+	if log, ok := lr.readers[readerName]; ok {
+
+		tx := lr.preProcess(log.Unmarshal(data))
+
+		for i := range tx {
+			tx[i].Exchange = readerName
+		}
+
+		return tx
+	}
+
+	if lr.ignoreUnknown {
+		return []common.TransactionLog{}
+	}
+
+	panic(fmt.Sprintf("could not find reader named: %s", readerName))
+
+}
+
 func (lr *TxLogReaderImpl) read(directory string, recursive bool) []common.TransactionLog {
 
 	tx := []common.TransactionLog{}

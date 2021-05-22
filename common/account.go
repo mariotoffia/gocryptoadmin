@@ -152,16 +152,18 @@ func (acc *AccountLog) GetAssetPair() AssetPair {
 
 // ConsoleString implements the `ConsoleFormatter` interface
 func (acc *AccountLog) ConsoleHeader() string {
-	s := "Exchange\tSide\tDate\t\t\tPair\tSize\t\tPrice\t\tFee\t\tTotal"
+	s := "Exchange\tSide\t\tDate\t\t\tPair\tSize\t\tPrice\t\tFee\t\tTotal"
 
 	for _, v := range acc.sorted {
 		s += fmt.Sprintf("\t\t%s", v)
 	}
 
-	s += "\n---------------------------------------------------------" +
-		"-----------------------------------------------------" +
-		"-----------------------------------------------------" +
-		"-----------------------------------------------------"
+	s += "\n----------------------------------------------" +
+		"----------------------------------------------------------------------------------"
+
+	for i := 0; i < len(acc.sorted); i++ {
+		s += "----------------"
+	}
 
 	return s
 }
@@ -169,17 +171,36 @@ func (acc *AccountLog) ConsoleHeader() string {
 // ConsoleString implements the `ConsoleFormatter` interface
 func (acc *AccountLog) ConsoleString() string {
 
-	s := fmt.Sprintf(
-		"%s\t%s\t%s\t%s\t%f\t%f\t%f\t%f",
-		acc.GetExchange(),
-		acc.GetSide(),
-		acc.GetCreatedAt().Format("2006-01-02 15:04:05.999999999"),
-		acc.GetAssetPair().String(),
-		acc.GetAssetSize(),
-		acc.GetPricePerUnit(),
-		acc.GetFee(),
-		acc.GetTotalPrice(),
-	)
+	var s string
+	if acc.GetSide() == SideTypeTransfer {
+
+		s = fmt.Sprintf(
+			"%s\t\t%s\t%s\t%s\t%f\t%f\t%f\t%f",
+			acc.GetExchange(),
+			acc.GetSide(),
+			acc.GetCreatedAt().Format("2006-01-02 15:04:05.999999999"),
+			acc.GetAssetPair().String(),
+			acc.GetAssetSize(),
+			acc.GetPricePerUnit(),
+			acc.GetFee(),
+			acc.GetTotalPrice(),
+		)
+
+	} else {
+
+		s = fmt.Sprintf(
+			"%s\t\t%s\t\t%s\t%s\t%f\t%f\t%f\t%f",
+			acc.GetExchange(),
+			acc.GetSide(),
+			acc.GetCreatedAt().Format("2006-01-02 15:04:05.999999999"),
+			acc.GetAssetPair().String(),
+			acc.GetAssetSize(),
+			acc.GetPricePerUnit(),
+			acc.GetFee(),
+			acc.GetTotalPrice(),
+		)
+
+	}
 
 	for _, v := range acc.sorted {
 

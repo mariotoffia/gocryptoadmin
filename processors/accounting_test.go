@@ -115,3 +115,57 @@ func TestReceiveAndSellReceive(t *testing.T) {
 	assert.Equal(t, float64(0.0), txa[1].(common.AccountEntry).GetAccountStatus()["LTC"])
 	assert.Equal(t, float64(750.00135), txa[1].(common.AccountEntry).GetAccountStatus()["EUR"])
 }
+
+func TestMultiExchange(t *testing.T) {
+
+	txr := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
+		RegisterReader("lf", coinbasepro.NewTransactionLogReader()).
+		RegisterReader("kr", coinbasepro.NewTransactionLogReader()).
+		RegisterReader("cb", coinbasepro.NewTransactionLogReader())
+
+	tx := txr.ReadBufferAsExchange(
+		"lf", utils.ReadFile("testfiles/multi-exchange/lf.csv"),
+	)
+
+	tx = append(
+		tx,
+		txr.ReadBufferAsExchange(
+			"kr", utils.ReadFile("testfiles/multi-exchange/kr.csv"))...,
+	)
+
+	tx = append(
+		tx,
+		txr.ReadBufferAsExchange(
+			"cb", utils.ReadFile("testfiles/multi-exchange/cb.csv"))...,
+	)
+
+	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
+
+	for _, tx := range tx {
+		proc.Process(tx)
+	}
+
+	txg := proc.Flush()
+
+	acc := NewAccountingProcessor()
+	for i := range txg {
+		acc.Process(&txg[i]) // Since accepting interface, use indexer
+	}
+
+	txa := acc.Flush()
+
+	cfa := txa[0].(common.ConsoleFormatter)
+	fmt.Println(cfa.ConsoleHeader())
+
+	for i, tx := range txa {
+
+		fmt.Println(
+			tx.(common.ConsoleFormatter).ConsoleString(),
+		)
+
+		if i == -1 {
+			break
+		}
+
+	}
+}
