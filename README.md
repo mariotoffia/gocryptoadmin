@@ -78,6 +78,63 @@ lf		BUY		lf			2017-12-06 08:00:00	EUR-SEK	50.000000	10.000000	50.000000	-550.000
 lf		TRANSFER	kr			2017-12-06 09:00:00	EUR-EUR	48.000000	1.000000	2.000000	-50.000000	0.000000	-550.000000
 ```
 
+The code to output this is the following.
+```golang
+func TestMultiExchangeMultiAccount(t *testing.T) {
+
+	txr := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
+		RegisterReader("lf", coinbasepro.NewTransactionLogReader()).
+		RegisterReader("kr", coinbasepro.NewTransactionLogReader()).
+		RegisterReader("cb", coinbasepro.NewTransactionLogReader())
+
+	tx := txr.ReadBufferAsExchange(
+		"lf", utils.ReadFile("testfiles/multi-exchange/lf.csv"),
+	)
+
+	tx = append(
+		tx,
+		txr.ReadBufferAsExchange(
+			"kr", utils.ReadFile("testfiles/multi-exchange/kr.csv"))...,
+	)
+
+	tx = append(
+		tx,
+		txr.ReadBufferAsExchange(
+			"cb", utils.ReadFile("testfiles/multi-exchange/cb.csv"))...,
+	)
+
+	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
+
+	for _, tx := range tx {
+		proc.Process(tx)
+	}
+
+	txg := proc.Flush()
+
+	acc := NewMultiExchangeAccountingProcessor()
+	for i := range txg {
+		acc.Process(&txg[i]) // Since accepting interface, use indexer
+	}
+
+	for exchange, transactions := range acc.Flush() {
+
+		cfa := transactions[0].(common.ConsoleFormatter)
+
+		fmt.Printf("\nExchange: %s\n\n", exchange)
+		fmt.Println(cfa.ConsoleHeader())
+
+		for i, tx := range transactions {
+
+			fmt.Println(
+				tx.(common.ConsoleFormatter).ConsoleString(),
+			)
+
+		}
+
+	}
+
+}
+```
 
 ## Development
 
