@@ -2,6 +2,7 @@ package processors
 
 import "github.com/mariotoffia/gocryptoadmin/common"
 
+// AccountingProcessor implements (ish) the `TxGroupProcessor` interface.
 type AccountingProcessor struct {
 	entries  []common.AccountEntry
 	previous common.AccountEntry
@@ -29,6 +30,16 @@ func NewAccountingProcessor(exchange string) *AccountingProcessor {
 
 func (ap *AccountingProcessor) Reset() {
 	ap.entries = []common.AccountEntry{}
+}
+
+func (ap *AccountingProcessor) ProcessMany(tx []common.TransactionEntry) {
+
+	for i := range tx {
+
+		ap.Process(tx[i])
+
+	}
+
 }
 
 func (ap *AccountingProcessor) Process(tx common.TransactionEntry) {

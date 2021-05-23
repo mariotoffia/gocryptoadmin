@@ -6,6 +6,8 @@ import "github.com/mariotoffia/gocryptoadmin/common"
 // that processes all and each exchange individual and hence
 // it is possible to get a complete view and a view on each exchange
 // locally.
+//
+// It implements the `common.MultiAccountTxProcessor` interface.
 type MultiExchangeAccountingProcessor struct {
 	processors map[string]*AccountingProcessor
 }
@@ -22,6 +24,16 @@ func NewMultiExchangeAccountingProcessor() *MultiExchangeAccountingProcessor {
 
 func (m *MultiExchangeAccountingProcessor) Reset() {
 	m.processors = map[string]*AccountingProcessor{}
+}
+
+func (m *MultiExchangeAccountingProcessor) ProcessMany(tx []common.TransactionEntry) {
+
+	for i := range tx {
+
+		m.Process(tx[i])
+
+	}
+
 }
 
 func (m *MultiExchangeAccountingProcessor) Process(tx common.TransactionEntry) {

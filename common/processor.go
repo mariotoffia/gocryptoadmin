@@ -72,3 +72,12 @@ type TxGroupProcessor interface {
 	// It will return all current flushed entries (including all earlier).
 	Flush() []TxGroupEntry
 }
+
+// MultiAccountTxProcessor will keep account records for each exchange
+// and a set of global `ExchangeAll` accounts.
+type MultiAccountTxProcessor interface {
+	Processor
+	Process(tx TransactionEntry)
+	ProcessMany(tx []TransactionEntry)
+	Flush() map[string][]TransactionEntry
+}
