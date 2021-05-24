@@ -17,7 +17,7 @@ func TestAccountingCoinbaseProFiles(t *testing.T) {
 	tx := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
 		UseDir("../data").
 		IgnoreUnknownFiles().
-		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
+		RegisterReader("cbx", coinbasepro.NewTransactionLogReader()).
 		Read()
 
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
@@ -171,7 +171,7 @@ func TestMultiExchangeSingleAccount(t *testing.T) {
 	txr := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
 		RegisterReader("lf", coinbasepro.NewTransactionLogReader()).
 		RegisterReader("kr", coinbasepro.NewTransactionLogReader()).
-		RegisterReader("cb", coinbasepro.NewTransactionLogReader())
+		RegisterReader("cbx", coinbasepro.NewTransactionLogReader())
 
 	tx := txr.ReadBufferAsExchange(
 		"lf", utils.ReadFile("testfiles/multi-exchange/lf.csv"),
@@ -186,7 +186,7 @@ func TestMultiExchangeSingleAccount(t *testing.T) {
 	tx = append(
 		tx,
 		txr.ReadBufferAsExchange(
-			"cb", utils.ReadFile("testfiles/multi-exchange/cb.csv"))...,
+			"cbx", utils.ReadFile("testfiles/multi-exchange/cb.csv"))...,
 	)
 
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)

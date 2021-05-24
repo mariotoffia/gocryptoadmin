@@ -49,7 +49,7 @@ func (c *ChronologicalTxEntryProcessor) Flush() []common.TransactionLog {
 
 			if c.tx[i].Exchange == c.tx[j].Exchange {
 
-				if c.tx[i].Exchange == "coinbase-pro" &&
+				if c.tx[i].Exchange == "cbx" &&
 					c.tx[i].AssetPair == c.tx[j].AssetPair {
 
 					li, err := strconv.ParseInt(c.tx[i].ID, 10, 64)
@@ -101,7 +101,7 @@ func (c *ChronologicalGroupTxEntryProcessor) Flush() []common.TxGroupEntry {
 
 			if c.tx[i].GetExchange() == c.tx[j].GetExchange() {
 
-				if c.tx[i].GetExchange() == "coinbase-pro" &&
+				if c.tx[i].GetExchange() == "cbx" &&
 					c.tx[i].GetAssetPair().String() == c.tx[j].GetAssetPair().String() {
 
 					li, err := strconv.ParseInt(c.tx[i].ID, 10, 64)

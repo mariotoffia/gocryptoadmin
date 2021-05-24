@@ -1,6 +1,7 @@
 package txhistory
 
 import (
+	"sort"
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
@@ -36,10 +37,6 @@ func (txr *TxOHCReader) Read(
 	reader ...string,
 ) []common.TxOHCHistoryEntry {
 
-	if len(reader) == 1 {
-		return txr.readers[reader[0]].Read(pair, since, interval)
-	}
-
 	list := []common.TxOHCHistoryEntry{}
 
 	for i := range reader {
@@ -48,6 +45,14 @@ func (txr *TxOHCReader) Read(
 		list = append(list, entries...)
 
 	}
+
+	sort.Slice(list, func(i, j int) bool {
+
+		return list[i].GetDateTime().Before(
+			list[j].GetDateTime(),
+		)
+
+	})
 
 	return list
 }

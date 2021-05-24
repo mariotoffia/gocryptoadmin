@@ -14,7 +14,7 @@ func TestReadCoinbasedTxLogFiles(t *testing.T) {
 	tx := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
 		UseDir("../data").
 		IgnoreUnknownFiles().
-		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
+		RegisterReader("cbx", coinbasepro.NewTransactionLogReader()).
 		Read()
 
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/) // time.Duration(30 * 60)

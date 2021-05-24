@@ -40,8 +40,8 @@ default,382593,XLM-EUR,SELL,2019-06-26T13:35:46.772Z,439.00000000,XLM,0.11375,0.
 
 	tx := NewTxLogReader(processors.NewChronologicalTxEntryProcessor()).
 		UseDir(filepath.Dir(fp)).
-		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
-		ReadBuffer("coinbasepro", []byte(data))
+		RegisterReader("cbx", coinbasepro.NewTransactionLogReader()).
+		ReadBuffer("cbx", []byte(data))
 
 	for _, tx := range tx {
 
@@ -61,7 +61,7 @@ func TestReadCoinbasedTxLogFiles(t *testing.T) {
 	tx := NewTxLogReader(processors.NewChronologicalTxEntryProcessor()).
 		UseDir("../data").
 		IgnoreUnknownFiles().
-		RegisterReader("coinbasepro", coinbasepro.NewTransactionLogReader()).
+		RegisterReader("cbx", coinbasepro.NewTransactionLogReader()).
 		Read()
 
 	for _, tx := range tx {

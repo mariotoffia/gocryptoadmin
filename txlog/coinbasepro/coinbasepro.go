@@ -55,7 +55,7 @@ func (c *cbp) Unmarshal(data []byte) []common.TransactionLog {
 			} else {
 
 				fmt.Fprintf(
-					os.Stderr, "[coinbasepro] Unknown field: %s = %s", header[i], dec.Record()[i],
+					os.Stderr, "[cbx] Unknown field: %s = %s", header[i], dec.Record()[i],
 				)
 
 			}
@@ -75,7 +75,7 @@ func (c *cbp) Transform(v *CbpTransaction, sideIdentifier string) common.Transac
 
 	return common.TransactionLog{
 		ID:             v.ID,
-		Exchange:       "coinbase-pro",
+		Exchange:       "cbx",
 		Side:           v.Side,
 		SideIdentifier: sideIdentifier,
 		CreatedAt:      v.CreatedAt,

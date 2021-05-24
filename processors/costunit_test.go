@@ -16,10 +16,10 @@ import (
 func TestApplyEURCostUnit(t *testing.T) {
 
 	txr := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
-		RegisterReader("cb", coinbasepro.NewTransactionLogReader())
+		RegisterReader("cbx", coinbasepro.NewTransactionLogReader())
 
 	tx := txr.ReadBufferAsExchange(
-		"cb", utils.ReadFile("testfiles/cost-unit/cb.csv"),
+		"cbx", utils.ReadFile("testfiles/cost-unit/cb.csv"),
 	)
 
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
@@ -37,7 +37,7 @@ func TestApplyEURCostUnit(t *testing.T) {
 
 	for exchange, transactions := range acc.Flush() {
 
-		if exchange != "cb" {
+		if exchange != "cbx" {
 			continue
 		}
 
