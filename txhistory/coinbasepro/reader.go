@@ -125,7 +125,7 @@ func (cbx *Coinbase) toEntry(
 	entry := common.TxOHCHistory{
 		Exchange:    cbx.exchange,
 		AssetPair:   pair,
-		DateTime:    time.Unix(int64(arr[0].(float64)), 0),
+		DateTime:    time.Unix(int64(arr[0].(float64)), 0).UTC(),
 		Resolution:  int(interval / time.Minute),
 		Low:         arr[1].(float64),
 		High:        arr[2].(float64),

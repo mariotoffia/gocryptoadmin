@@ -94,7 +94,7 @@ func (k *Kraken) toEntry(
 	entry := common.TxOHCHistory{
 		Exchange:   k.exchange,
 		AssetPair:  pair,
-		DateTime:   time.Unix(int64(arr[0].(float64)), 0),
+		DateTime:   time.Unix(int64(arr[0].(float64)), 0).UTC(),
 		Resolution: int(interval / time.Minute),
 		Open:       utils.Float64FromString(arr[1].(string)),
 		High:       utils.Float64FromString(arr[2].(string)),

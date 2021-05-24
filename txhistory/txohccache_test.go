@@ -10,6 +10,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestRenderCorrectUTCUnixTime(t *testing.T) {
+	ts := time.Unix(1530057600, 0).UTC()
+
+	assert.Equal(t, "2018-06-27T00:00:00Z", ts.Format("2006-01-02T15:04:05Z"))
+
+}
+
 func TestWriteNewCache(t *testing.T) {
 
 	// We're skipping this test - run this manually
@@ -64,7 +71,7 @@ func TestResolveBTCEURPriceInMiddleOfEntry(t *testing.T) {
 		CostUnit: common.AssetTypeEuro,
 	}, at, "cbx", common.ExchangeAll)
 
-	assert.Equal(t, "2018-08-31T02:00:00", found.DateTime.Format("2006-01-02T15:04:05"))
+	assert.Equal(t, "2018-08-31T00:00:00", found.DateTime.Format("2006-01-02T15:04:05"))
 }
 
 func TestResolveBTCEURPriceExactMatch(t *testing.T) {
@@ -89,5 +96,5 @@ func TestResolveBTCEURPriceExactMatch(t *testing.T) {
 		CostUnit: common.AssetTypeEuro,
 	}, at, "cbx", common.ExchangeAll)
 
-	assert.Equal(t, "2018-08-31T02:00:00", found.DateTime.Format("2006-01-02T15:04:05"))
+	assert.Equal(t, "2018-08-31T00:00:00", found.DateTime.Format("2006-01-02T15:04:05"))
 }
