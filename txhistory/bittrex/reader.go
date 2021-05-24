@@ -38,74 +38,8 @@ func New(baseURL string) *Bittrex {
 	}
 }
 
-func (ofx *Bittrex) SetExchangeName(name string) {
-	ofx.exchange = name
-}
-
-func toReportingPeriod(candleInterval string, since time.Time) []string {
-
-	now := time.Now().UTC()
-	ret := []string{}
-
-	for since.Before(now) {
-
-		switch candleInterval {
-		case "HOUR_1":
-			if since.Month() == now.Month() &&
-				since.Year() == now.Year() {
-
-				return ret
-
-			}
-
-			ret = append(ret, fmt.Sprintf("%d/%d", since.Year(), since.Month()))
-			since = since.Add(31 * time.Hour * 24)
-
-		case "MINUTE_5", "MINUTE_1":
-
-			if since.Month() == now.Month() &&
-				since.Year() == now.Year() &&
-				since.Day() == now.Day() {
-
-				return ret
-
-			}
-
-			ret = append(ret, fmt.Sprintf("%d/%d/%d", since.Year(), since.Month(), since.Day()))
-			since = since.Add(time.Hour * 24)
-
-		case "DAY_1":
-
-			if since.Year() == now.Year() {
-
-				return ret
-
-			}
-
-			ret = append(ret, fmt.Sprintf("%d", since.Year()))
-			since = since.Add(366 * time.Hour * 24)
-
-		}
-
-	}
-
-	return ret
-}
-
-func toCandleInterval(interval time.Duration) string {
-
-	dur := (interval / time.Minute)
-
-	if dur <= 5 {
-		return "MINUTE_5"
-	}
-
-	if dur <= 60 {
-		return "HOUR_1"
-	}
-
-	return "DAY_1"
-
+func (btx *Bittrex) SetExchangeName(name string) {
+	btx.exchange = name
 }
 
 func (btx *Bittrex) Read(
@@ -172,7 +106,7 @@ func (btx *Bittrex) processRequest(
 	return list
 
 }
-func (ofx *Bittrex) toEntry(
+func (btx *Bittrex) toEntry(
 	point *Point,
 	pair common.AssetPair,
 	interval time.Duration) common.TxOHCHistory {
@@ -184,7 +118,7 @@ func (ofx *Bittrex) toEntry(
 	}
 
 	entry := common.TxOHCHistory{
-		Exchange:   ofx.exchange,
+		Exchange:   btx.exchange,
 		AssetPair:  pair,
 		DateTime:   t.UTC(),
 		Resolution: int(interval / time.Minute),
@@ -197,4 +131,70 @@ func (ofx *Bittrex) toEntry(
 	entry.ID = utils.ToString(utils.HashFromTime(entry.DateTime))
 
 	return entry
+}
+
+func toReportingPeriod(candleInterval string, since time.Time) []string {
+
+	now := time.Now().UTC()
+	ret := []string{}
+
+	for since.Before(now) {
+
+		switch candleInterval {
+		case "HOUR_1":
+			if since.Month() == now.Month() &&
+				since.Year() == now.Year() {
+
+				return ret
+
+			}
+
+			ret = append(ret, fmt.Sprintf("%d/%d", since.Year(), since.Month()))
+			since = since.Add(31 * time.Hour * 24)
+
+		case "MINUTE_5", "MINUTE_1":
+
+			if since.Month() == now.Month() &&
+				since.Year() == now.Year() &&
+				since.Day() == now.Day() {
+
+				return ret
+
+			}
+
+			ret = append(ret, fmt.Sprintf("%d/%d/%d", since.Year(), since.Month(), since.Day()))
+			since = since.Add(time.Hour * 24)
+
+		case "DAY_1":
+
+			if since.Year() == now.Year() {
+
+				return ret
+
+			}
+
+			ret = append(ret, fmt.Sprintf("%d", since.Year()))
+			since = since.Add(366 * time.Hour * 24)
+
+		}
+
+	}
+
+	return ret
+}
+
+func toCandleInterval(interval time.Duration) string {
+
+	dur := (interval / time.Minute)
+
+	if dur <= 5 {
+		return "MINUTE_5"
+	}
+
+	if dur <= 60 {
+		return "HOUR_1"
+	}
+
+	return "DAY_1"
+
 }
