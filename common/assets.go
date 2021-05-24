@@ -1,11 +1,21 @@
 package common
 
+type AssetPair struct {
+	Asset    AssetType `csv:"asset"    json:"asset"`
+	CostUnit AssetType `csv:"costunit" json:"costunit"`
+}
+
+func (ap AssetPair) String() string {
+	return string(ap.Asset) + "-" + string(ap.CostUnit)
+}
+
 // AssetType is the name of an asset e.g. EUR, BTC, XLM etc.
 type AssetType string
 
 const (
 	AssetTypeEuro        AssetType = "EUR"
 	AssetTypeSvenskKrona AssetType = "SEK"
+	AssetTypeUsDollar    AssetType = "USD"
 	AssetTypeUSDT        AssetType = "USDT"
 	AssetTypeBTC         AssetType = "BTC"
 	AssetTypeLTC         AssetType = "LTC"
@@ -32,11 +42,57 @@ func (asset AssetType) IsTether() bool {
 	return asset == AssetTypeUSDT
 }
 
-type AssetPair struct {
-	Asset    AssetType `csv:"asset"    json:"asset"`
-	CostUnit AssetType `csv:"costunit" json:"costunit"`
+// Normalize parses the name and makes sure that is matches a asset type.
+//
+// For example _XBT_ is translated to `AssetTypeBTC` or _ZEUR_ is translated
+// to `AssetTypeEuro`.
+func (asset AssetType) Normalize() AssetType {
+
+	switch asset {
+	case "XXBT", "XBT":
+		return AssetTypeBTC
+	case "XETH":
+		return AssetTypeETH
+	case "XLTC":
+		return AssetTypeLTC
+	case "XXRP":
+		return AssetTypeXRP
+	case "XXLM":
+		return AssetTypeXLM
+	case "ZEUR":
+		return AssetTypeEuro
+	case "ZUSD":
+		return AssetTypeUsDollar
+	case "ZSEK":
+		return AssetTypeSvenskKrona
+	}
+
+	return asset
 }
 
-func (ap AssetPair) String() string {
-	return string(ap.Asset) + "-" + string(ap.CostUnit)
+// ToISO translates a asset type into it's _ISO_ correspondence, if exists.
+//
+// For example: _BTC_ is translated to _XBT_.
+func (asset AssetType) ToISO() AssetType {
+
+	switch asset {
+	case AssetTypeBTC:
+		return AssetType("XBT")
+	case AssetTypeETH:
+		return AssetType("XETH")
+	case AssetTypeLTC:
+		return AssetType("XLTC")
+	case AssetTypeXRP:
+		return AssetType("XXRP")
+	case AssetTypeXLM:
+		return AssetType("XXLM")
+	case AssetTypeEuro:
+		return AssetType("ZEUR")
+	case AssetTypeSvenskKrona:
+		return AssetType("ZSEK")
+	case AssetTypeUsDollar:
+		return AssetType("ZUSD")
+	}
+
+	return asset
 }

@@ -11,6 +11,8 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
+// https://www.cryptodatadownload.com/data/bittrex/
+
 func TestApplyEURCostUnit(t *testing.T) {
 
 	txr := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
