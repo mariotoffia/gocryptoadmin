@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/jszwec/csvutil"
 	"github.com/mariotoffia/gocryptoadmin/common"
@@ -85,12 +87,14 @@ func (cache *TxOHCCache) Clear(path string, except ...string) *TxOHCCache {
 
 func (cache *TxOHCCache) Load(
 	path string,
-	addFunc func(cache *TxOHCCache, entries []common.TxOHCHistory),
+	addFunc func(cache *TxOHCCache, exchange string, entries []common.TxOHCHistory),
 	exchange ...string) *TxOHCCache {
 
 	if addFunc == nil {
 
-		addFunc = func(cache *TxOHCCache, entries []common.TxOHCHistory) {
+		addFunc = func(
+			cache *TxOHCCache, exchange string, entries []common.TxOHCHistory,
+		) {
 			cache.Add(entries)
 		}
 
@@ -108,11 +112,21 @@ func (cache *TxOHCCache) Load(
 		}
 
 		var entries []common.TxOHCHistory
-		if err = csvutil.Unmarshal(data, entries); err != nil {
+		if err = csvutil.Unmarshal(data, &entries); err != nil {
 			return err
 		}
 
-		addFunc(cache, entries)
+		exchange := strings.Split(filepath.Base(path), "_")[0]
+
+		sort.Slice(entries, func(i, j int) bool {
+
+			return entries[i].GetDateTime().Before(
+				entries[j].GetDateTime(),
+			)
+
+		})
+
+		addFunc(cache, exchange, entries)
 
 		return nil
 	})
@@ -154,6 +168,70 @@ func (cache *TxOHCCache) Store(path string, exchange ...string) *TxOHCCache {
 	}
 
 	return cache
+}
+
+func (cache *TxOHCCache) GetEntryForAssset(
+	assetPair common.AssetPair,
+	at time.Time,
+	exchange ...string,
+) *common.TxOHCHistory {
+
+	if len(exchange) == 0 {
+		exchange = []string{common.ExchangeAll}
+	}
+
+	ap := assetPair.String()
+
+	for _, ex := range exchange {
+
+		if entries, ok := cache.entries[ex]; ok {
+
+			if c, ok := entries.entries[ap]; ok {
+
+				if entry, ok := cache.FindEntry(c, at); ok {
+
+					return entry
+
+				}
+
+			}
+
+		}
+
+	}
+
+	return nil
+}
+
+func (cache *TxOHCCache) FindEntry(
+	entries []common.TxOHCHistory,
+	at time.Time,
+) (*common.TxOHCHistory, bool) {
+
+	var found *common.TxOHCHistory
+
+	for i, entry := range entries {
+
+		if at.Equal(entry.DateTime) {
+			found = &entries[i]
+			break
+		}
+
+		// Before since ascending sorted order expected
+		if at.Before(entry.DateTime) {
+
+			if i == 0 {
+				return nil, false
+			}
+
+			found = &entries[i-1]
+			break
+		}
+
+	}
+
+	return found, found != nil
+
 }
 
 func (cache *TxOHCCache) Add(entries []common.TxOHCHistory, exchange ...string) *TxOHCCache {
