@@ -12,8 +12,6 @@ import (
 )
 
 // https://api.forex.se/currency/historicalexchangerates/SWE/SEK/EUR
-// https://www.ofx.com/en-au/forex-news/historical-exchange-rates/
-// https://api.ofx.com/PublicSite.ApiService/SpotRateHistory/5year/EUR/SEK?DecimalPlaces=6&ReportingInterval=daily&format=json
 
 type Ofx struct {
 	baseURL  string

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
+	"github.com/mariotoffia/gocryptoadmin/txhistory/bittrex"
 	"github.com/mariotoffia/gocryptoadmin/txhistory/coinbasepro"
 	"github.com/mariotoffia/gocryptoadmin/txhistory/kraken"
 	"github.com/mariotoffia/gocryptoadmin/txhistory/ofx"
@@ -54,6 +55,24 @@ func TestGetEURtoUSDExchangeRate(t *testing.T) {
 		Asset:    common.AssetTypeEuro,
 		CostUnit: common.AssetTypeUsDollar,
 	}, from, time.Hour*24*31, "ofx")
+
+	data, err := json.MarshalIndent(entries, "", " ")
+
+	assert.Equal(t, nil, err)
+
+	fmt.Println(string(data))
+	fmt.Println(len(entries))
+}
+
+func TestBTCUSDTBittrex(t *testing.T) {
+
+	txr := NewTxOHCReader().Register("btx", bittrex.New(""))
+	from, _ := time.Parse(time.RFC3339, "2017-08-31T00:00:00.000Z")
+
+	entries := txr.Read(common.AssetPair{
+		Asset:    common.AssetTypeUSDT,
+		CostUnit: common.AssetTypeUsDollar,
+	}, from, time.Hour*24, "btx")
 
 	data, err := json.MarshalIndent(entries, "", " ")
 
