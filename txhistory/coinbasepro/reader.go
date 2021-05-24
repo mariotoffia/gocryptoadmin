@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
+	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
 // granularity=86400s => 1440min (1D)
@@ -133,6 +134,8 @@ func (cbx *Coinbase) toEntry(
 		Close:       arr[4].(float64),
 		AssetVolume: arr[5].(float64),
 	}
+
+	entry.ID = utils.ToString(utils.HashFromTime(entry.DateTime))
 
 	return entry
 }

@@ -105,5 +105,7 @@ func (k *Kraken) toEntry(
 		AssetVolume:    arr[7].(float64),
 	}
 
+	entry.ID = utils.ToString(utils.HashFromTime(entry.DateTime))
+
 	return entry
 }
