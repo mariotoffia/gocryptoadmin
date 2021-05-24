@@ -104,8 +104,7 @@ func (cbx *Coinbase) getRange(
 
 	var results []interface{}
 	if err = json.Unmarshal(data, &results); err != nil {
-		fmt.Println(string(data))
-		panic(err)
+		panic(fmt.Sprintf("data: %s, err: %s", string(data), err.Error()))
 	}
 
 	for _, v := range results {
