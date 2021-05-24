@@ -51,14 +51,40 @@ func toReportingPeriod(candleInterval string, since time.Time) []string {
 
 		switch candleInterval {
 		case "HOUR_1":
+			if since.Month() == now.Month() &&
+				since.Year() == now.Year() {
+
+				return ret
+
+			}
+
 			ret = append(ret, fmt.Sprintf("%d/%d", since.Year(), since.Month()))
 			since = since.Add(31 * time.Hour * 24)
+
 		case "MINUTE_5", "MINUTE_1":
+
+			if since.Month() == now.Month() &&
+				since.Year() == now.Year() &&
+				since.Day() == now.Day() {
+
+				return ret
+
+			}
+
 			ret = append(ret, fmt.Sprintf("%d/%d/%d", since.Year(), since.Month(), since.Day()))
 			since = since.Add(time.Hour * 24)
+
 		case "DAY_1":
+
+			if since.Year() == now.Year() {
+
+				return ret
+
+			}
+
 			ret = append(ret, fmt.Sprintf("%d", since.Year()))
 			since = since.Add(366 * time.Hour * 24)
+
 		}
 
 	}
@@ -134,7 +160,7 @@ func (btx *Bittrex) processRequest(
 
 	var result []Point
 	if err = json.Unmarshal(data, &result); err != nil {
-		panic(err)
+		panic(fmt.Sprintf("data: %s err: %s", string(data), err.Error()))
 	}
 
 	for _, v := range result {

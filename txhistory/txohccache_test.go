@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
+	"github.com/mariotoffia/gocryptoadmin/txhistory/bittrex"
 	"github.com/mariotoffia/gocryptoadmin/txhistory/coinbasepro"
 	"github.com/mariotoffia/gocryptoadmin/txhistory/ofx"
 	"github.com/stretchr/testify/assert"
@@ -22,11 +23,12 @@ func TestWriteNewCache(t *testing.T) {
 
 	// We're skipping this test - run this manually
 	// to populate files to be used in other tests
-	//t.SkipNow()
+	t.SkipNow()
 
 	txr := NewTxOHCReader().
 		Register("cbx", coinbasepro.New("")).
-		Register("ofx", ofx.New(""))
+		Register("ofx", ofx.New("")).
+		Register("btx", bittrex.New(""))
 
 	from, _ := time.Parse(time.RFC3339, "2017-08-31T00:00:00.000Z")
 
@@ -55,6 +57,11 @@ func TestWriteNewCache(t *testing.T) {
 		CostUnit: common.AssetTypeSvenskKrona,
 	}, from, time.Hour*24, "ofx")
 
+	entriesUSDTUSD := txr.Read(common.AssetPair{
+		Asset:    common.AssetTypeUSDT,
+		CostUnit: common.AssetTypeUsDollar,
+	}, from, time.Hour*24, "btx")
+
 	os.MkdirAll("testfiles/cache-test", 0700)
 
 	cache := NewTxOHCCache().
@@ -62,7 +69,8 @@ func TestWriteNewCache(t *testing.T) {
 		Add(entriesETHBTC, common.ExchangeAll).
 		Add(entriesEURUSD, common.ExchangeAll).
 		Add(entriesUSDEUR, common.ExchangeAll).
-		Add(entriesEURSEK, common.ExchangeAll)
+		Add(entriesEURSEK, common.ExchangeAll).
+		Add(entriesUSDTUSD, common.ExchangeAll)
 
 	//defer cache.Clear("testfiles/cache-test")
 

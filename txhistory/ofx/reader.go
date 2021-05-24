@@ -110,8 +110,6 @@ func (ofx *Ofx) Read(
 		toReportingInterval(interval),
 	)
 
-	fmt.Println(req)
-
 	response, err := http.Get(req)
 
 	if err != nil {
