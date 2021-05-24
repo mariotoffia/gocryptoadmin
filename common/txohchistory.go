@@ -6,7 +6,7 @@ import (
 
 // TxOHCReader reads from it's datasource and returns the result.
 type TxOHCReader interface {
-	Read(pair AssetPair, since time.Time, interval time.Duration) []TxOHCHistoryEntry
+	Read(pair AssetPair, since time.Time, interval time.Duration) []TxOHCHistory
 	// SetExchangeName alters the default name.
 	SetExchangeName(name string)
 }

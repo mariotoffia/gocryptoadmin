@@ -35,9 +35,9 @@ func (txr *TxOHCReader) Read(
 	since time.Time,
 	interval time.Duration,
 	reader ...string,
-) []common.TxOHCHistoryEntry {
+) []common.TxOHCHistory {
 
-	list := []common.TxOHCHistoryEntry{}
+	list := []common.TxOHCHistory{}
 
 	for i := range reader {
 

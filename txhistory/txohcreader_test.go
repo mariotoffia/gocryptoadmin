@@ -16,7 +16,7 @@ import (
 func TestReadFromKraken(t *testing.T) {
 
 	txr := NewTxOHCReader().Register("kr", kraken.New(""))
-	from, _ := time.Parse(time.RFC3339, "2017-08-31T00:00:00.000Z")
+	from, _ := time.Parse(time.RFC3339, "2020-12-31T00:00:00.000Z")
 
 	entries := txr.Read(common.AssetPair{
 		Asset:    common.AssetTypeBTC,

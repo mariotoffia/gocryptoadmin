@@ -37,9 +37,9 @@ func (k *Kraken) Read(
 	pair common.AssetPair,
 	since time.Time,
 	interval time.Duration,
-) []common.TxOHCHistoryEntry {
+) []common.TxOHCHistory {
 
-	list := []common.TxOHCHistoryEntry{}
+	list := []common.TxOHCHistory{}
 
 	req := fmt.Sprintf(
 		"%s/OHLC?pair=%s%s&interval=%d&since=%d",
@@ -89,7 +89,7 @@ func (k *Kraken) Read(
 func (k *Kraken) toEntry(
 	arr []interface{},
 	pair common.AssetPair,
-	interval time.Duration) common.TxOHCHistoryEntry {
+	interval time.Duration) common.TxOHCHistory {
 
 	entry := common.TxOHCHistory{
 		Exchange:   k.exchange,
@@ -105,5 +105,5 @@ func (k *Kraken) toEntry(
 		AssetVolume:    arr[7].(float64),
 	}
 
-	return &entry
+	return entry
 }

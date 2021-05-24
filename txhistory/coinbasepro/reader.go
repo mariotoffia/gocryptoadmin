@@ -47,7 +47,7 @@ func (cbx *Coinbase) Read(
 	pair common.AssetPair,
 	since time.Time,
 	interval time.Duration,
-) []common.TxOHCHistoryEntry {
+) []common.TxOHCHistory {
 
 	granularity := interval / time.Second
 	if granularity > 86400 || granularity < 60 {
@@ -59,7 +59,7 @@ func (cbx *Coinbase) Read(
 
 	}
 
-	list := []common.TxOHCHistoryEntry{}
+	list := []common.TxOHCHistory{}
 
 	for _, qr := range cbx.calcRanges(since, int(granularity)) {
 
@@ -76,9 +76,9 @@ func (cbx *Coinbase) getRange(
 	pair common.AssetPair,
 	interval time.Duration,
 	qr *QueryRange,
-) []common.TxOHCHistoryEntry {
+) []common.TxOHCHistory {
 
-	list := []common.TxOHCHistoryEntry{}
+	list := []common.TxOHCHistory{}
 
 	req := fmt.Sprintf(
 		"%s/%s/candles?start=%s&end=%s&granularity=%d",
@@ -120,7 +120,7 @@ func (cbx *Coinbase) getRange(
 func (cbx *Coinbase) toEntry(
 	arr []interface{},
 	pair common.AssetPair,
-	interval time.Duration) common.TxOHCHistoryEntry {
+	interval time.Duration) common.TxOHCHistory {
 
 	entry := common.TxOHCHistory{
 		Exchange:    cbx.exchange,
@@ -134,7 +134,7 @@ func (cbx *Coinbase) toEntry(
 		AssetVolume: arr[5].(float64),
 	}
 
-	return &entry
+	return entry
 }
 
 func (cbx *Coinbase) calcRanges(since time.Time, granularity int) []QueryRange {
