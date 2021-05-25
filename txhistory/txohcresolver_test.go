@@ -1,12 +1,12 @@
 package txhistory
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
 	"github.com/mariotoffia/gocryptoadmin/parsers"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,7 +34,30 @@ func TestResolveUSDTtoUSDtoEURtoSEK(t *testing.T) {
 	result, ok := resolver.ResolveToFIAT(at, common.AssetTypeUSDT, 3, "btx", common.ExchangeAll)
 
 	require.Equal(t, true, ok)
+	require.Equal(t, 3, len(result), "Should have USDT-USD, USD-EUR, and EUR-SEK")
 
-	fmt.Println(result)
+	assert.Equal(t, "2018-08-31T00:00:00Z", result[0].Entry.GetDateTime().Format(time.RFC3339))
+	assert.Equal(t, "USDT-USD", result[0].Entry.GetAssetPair().String())
+	assert.Equal(t, "btx", result[0].Exchange)
+	assert.Equal(t, float64(1), result[0].Entry.GetOpen())
+	assert.Equal(t, float64(1), result[0].Entry.GetHigh())
+	assert.Equal(t, float64(0.982), result[0].Entry.GetLow())
+	assert.Equal(t, float64(0.996), result[0].Entry.GetClose())
+
+	assert.Equal(t, "2018-08-31T00:00:00Z", result[1].Entry.GetDateTime().Format(time.RFC3339))
+	assert.Equal(t, "USD-EUR", result[1].Entry.GetAssetPair().String())
+	assert.Equal(t, "ofx", result[1].Exchange)
+	assert.Equal(t, float64(0.863015), result[1].Entry.GetOpen())
+	assert.Equal(t, float64(0.863015), result[1].Entry.GetHigh())
+	assert.Equal(t, float64(0.863015), result[1].Entry.GetLow())
+	assert.Equal(t, float64(0.863015), result[1].Entry.GetClose())
+
+	assert.Equal(t, "2018-08-31T00:00:00Z", result[2].Entry.GetDateTime().Format(time.RFC3339))
+	assert.Equal(t, "EUR-SEK", result[2].Entry.GetAssetPair().String())
+	assert.Equal(t, "all", result[2].Exchange, "Since expression is EUR = SEK (default to all)")
+	assert.Equal(t, float64(10.611722), result[2].Entry.GetOpen())
+	assert.Equal(t, float64(10.611722), result[2].Entry.GetHigh())
+	assert.Equal(t, float64(10.611722), result[2].Entry.GetLow())
+	assert.Equal(t, float64(10.611722), result[2].Entry.GetClose())
 
 }
