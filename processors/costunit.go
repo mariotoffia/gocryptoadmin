@@ -110,22 +110,12 @@ func (proc *CostUnitProcessor) Process(tx common.TransactionLog) {
 
 		}
 
-		if tot <= 0 || fee <= 0 {
-
-			panic(
-				fmt.Sprintf(
-					"BUG!!!! Either / both tot: %f or fee: %f is zero or less",
-					tot, fee,
-				),
-			)
-
-		}
-
 		tx.TranslatedTotalPrice[string(asset)] = tot
 		tx.TranslatedFee[string(asset)] = fee
 
 	}
 
+	proc.transactions = append(proc.transactions, tx)
 }
 
 func (proc *CostUnitProcessor) Flush() []common.TransactionLog {
