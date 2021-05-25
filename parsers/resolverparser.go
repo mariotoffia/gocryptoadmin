@@ -11,6 +11,8 @@ import (
 // _btx:USDT = btx,all:USDT-USD -> ofx,all:USD-EUR_.
 //
 // All patterns are terminated with a new-line.
+//
+// When prefix is omitted, the _all_ prefix is appended.
 type ResolverParser struct {
 	expressions []ResolverExpression
 }
@@ -52,25 +54,27 @@ func (parser *ResolverParser) Parse(expr string) *ResolverParser {
 
 		}
 
-		assetPrefixes, asset := parser.getPrefixes(parser.cleanString(eq[0]))
+		assetPrefixes, assetExpr := parser.getPrefixes(parser.cleanString(eq[0]))
 
-		expr.Asset = common.AssetType(asset)
+		asset := common.AssetType(assetExpr)
+		expr.Asset = asset
 		expr.AssetPrefixes = assetPrefixes
 
 		paths := strings.Split(parser.cleanString(eq[1]), "->")
 		for _, path := range paths {
 
-			assetPairPrefixes, assetPair := parser.getPrefixes(path)
-			ap, err := common.ParseAssetPair(assetPair)
+			assetPairPrefixes, costUnitExpr := parser.getPrefixes(path)
 
-			if err != nil {
-				panic(err)
-			}
-
+			costUnit := common.AssetType(costUnitExpr)
 			expr.Path = append(expr.Path, ResolverExpressionPathItem{
 				AssetPrefixes: assetPairPrefixes,
-				AssetPair:     ap,
+				AssetPair: common.AssetPair{
+					Asset:    asset,
+					CostUnit: costUnit,
+				},
 			})
+
+			asset = costUnit
 
 		}
 
@@ -96,7 +100,7 @@ func (parser *ResolverParser) getPrefixes(expr string) ([]string, string) {
 	c := strings.Split(expr, ":")
 
 	if len(c) <= 1 {
-		return []string{}, expr
+		return []string{"all"}, expr
 	}
 
 	if len(c) != 2 {

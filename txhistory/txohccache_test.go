@@ -97,7 +97,7 @@ func TestResolveBTCEURPriceInMiddleOfEntry(t *testing.T) {
 
 	at, _ := time.Parse(time.RFC3339, "2018-08-31T13:00:00.000Z")
 
-	found := cache.GetEntryForAssset(common.AssetPair{
+	found, _ := cache.GetEntryForAssset(common.AssetPair{
 		Asset:    common.AssetTypeBTC,
 		CostUnit: common.AssetTypeEuro,
 	}, at, "cbx", common.ExchangeAll)
@@ -122,7 +122,7 @@ func TestResolveBTCEURPriceExactMatch(t *testing.T) {
 
 	at, _ := time.Parse(time.RFC3339, "2018-08-31T00:00:00.000Z")
 
-	found := cache.GetEntryForAssset(common.AssetPair{
+	found, _ := cache.GetEntryForAssset(common.AssetPair{
 		Asset:    common.AssetTypeBTC,
 		CostUnit: common.AssetTypeEuro,
 	}, at, "cbx", common.ExchangeAll)

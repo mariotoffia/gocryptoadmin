@@ -174,7 +174,7 @@ func (cache *TxOHCCache) GetEntryForAssset(
 	assetPair common.AssetPair,
 	at time.Time,
 	exchange ...string,
-) *common.TxOHCHistory {
+) (*common.TxOHCHistory, string) {
 
 	if len(exchange) == 0 {
 		exchange = []string{common.ExchangeAll}
@@ -190,7 +190,7 @@ func (cache *TxOHCCache) GetEntryForAssset(
 
 				if entry, ok := cache.FindEntry(c, at); ok {
 
-					return entry
+					return entry, ex
 
 				}
 
@@ -200,7 +200,7 @@ func (cache *TxOHCCache) GetEntryForAssset(
 
 	}
 
-	return nil
+	return nil, ""
 }
 
 func (cache *TxOHCCache) FindEntry(

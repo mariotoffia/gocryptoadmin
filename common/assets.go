@@ -62,7 +62,11 @@ const (
 
 // IsFIAT checks if the `AssetType` is plain FIAT or crypto currency
 func (asset AssetType) IsFIAT() bool {
-	return asset == AssetTypeEuro || asset == AssetTypeSvenskKrona
+
+	return asset == AssetTypeEuro ||
+		asset == AssetTypeSvenskKrona ||
+		asset == AssetTypeUsDollar
+
 }
 
 // IsCrypto returns `true` when the _asset_ is a non _FIAT_ currency.
