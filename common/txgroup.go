@@ -161,12 +161,74 @@ func (txg *TxGroupEntry) GetTotalPrice() float64 {
 
 }
 
+func (txg *TxGroupEntry) GetTranslatedTotalPrice(asset AssetType) float64 {
+
+	if len(txg.Tx) == 0 {
+		return 0
+	}
+
+	return linq.From(txg.Tx).
+		Select(func(tx interface{}) interface{} {
+
+			log := tx.(TransactionLog)
+			if log.TranslatedTotalPrice != nil {
+
+				if f, ok := log.TranslatedTotalPrice[string(asset)]; ok {
+					return f
+				}
+
+			}
+
+			panic("blended translated total price and none")
+
+		}).
+		SumFloats()
+
+}
+
+func (txg *TxGroupEntry) GetTranslatedFee(asset AssetType) float64 {
+
+	if len(txg.Tx) == 0 {
+		return 0
+	}
+
+	return linq.From(txg.Tx).
+		Select(func(tx interface{}) interface{} {
+
+			log := tx.(TransactionLog)
+			if log.TranslatedFee != nil {
+
+				if f, ok := log.TranslatedFee[string(asset)]; ok {
+					return f
+				}
+
+			}
+
+			panic("blended translated total fee and none")
+
+		}).
+		SumFloats()
+
+}
+
+func (txg *TxGroupEntry) GetTranslatedAssets() []AssetType {
+
+	if len(txg.Tx) == 0 {
+		return []AssetType{}
+	}
+
+	return txg.Tx[0].GetTranslatedAssets()
+
+}
+
 func (txg *TxGroupEntry) GetAssetPair() AssetPair {
+
 	if len(txg.Tx) == 0 {
 		return AssetPair{}
 	}
 
 	return txg.Tx[0].AssetPair
+
 }
 
 func (txg *TxGroupEntry) GetMostProminentSizeTransactionLog() TransactionLog {

@@ -118,6 +118,18 @@ func (acc *AccountLog) GetID() string {
 	return acc.tx.GetID()
 }
 
+func (acc *AccountLog) GetTranslatedTotalPrice(asset AssetType) float64 {
+	return acc.tx.GetTranslatedTotalPrice(asset)
+}
+
+func (acc *AccountLog) GetTranslatedFee(asset AssetType) float64 {
+	return acc.tx.GetTranslatedFee(asset)
+}
+
+func (acc *AccountLog) GetTranslatedAssets() []AssetType {
+	return acc.tx.GetTranslatedAssets()
+}
+
 func (acc *AccountLog) GetExchange() string {
 	return acc.tx.GetExchange()
 }
