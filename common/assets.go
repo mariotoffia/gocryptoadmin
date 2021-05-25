@@ -1,5 +1,10 @@
 package common
 
+import (
+	"fmt"
+	"strings"
+)
+
 type AssetPair struct {
 	Asset    AssetType `csv:"asset"    json:"asset"`
 	CostUnit AssetType `csv:"costunit" json:"costunit"`
@@ -9,10 +14,39 @@ func (ap AssetPair) String() string {
 	return string(ap.Asset) + "-" + string(ap.CostUnit)
 }
 
+func ParseAssetPair(ap string) (AssetPair, error) {
+
+	if ap == "" {
+
+		return AssetPair{},
+			fmt.Errorf(
+				"cannot parse to assetpair from empty string",
+			)
+
+	}
+
+	c := strings.Split(ap, "-")
+	if len(c) != 2 {
+
+		return AssetPair{},
+			fmt.Errorf(
+				"cannot parse to assetpair not on form Asset-CostUnit",
+			)
+
+	}
+
+	return AssetPair{
+		Asset:    AssetType(c[0]),
+		CostUnit: AssetType(c[1]),
+	}, nil
+
+}
+
 // AssetType is the name of an asset e.g. EUR, BTC, XLM etc.
 type AssetType string
 
 const (
+	AssetTypeUnknown     AssetType = "UNK"
 	AssetTypeEuro        AssetType = "EUR"
 	AssetTypeSvenskKrona AssetType = "SEK"
 	AssetTypeUsDollar    AssetType = "USD"
