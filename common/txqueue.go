@@ -1,25 +1,33 @@
 package common
 
-type TxQueue []*TransactionLog
-
-func (q *TxQueue) Push(n *TransactionLog) {
-	*q = append(*q, n)
+type TxFIFOQueue struct {
+	queue *Queue
 }
 
-func (q *TxQueue) PushFront(n *TransactionLog) {
-	*q = append(TxQueue{n}, *q...)
+func NewTxFIFOQueue() *TxFIFOQueue {
+
+	return &TxFIFOQueue{
+		queue: NewQueue(),
+	}
+
 }
 
-func (q *TxQueue) Pop() (n *TransactionLog) {
-	n = (*q)[0]
-	*q = (*q)[1:]
-	return
+// Enq will enqueue the `TransactionLog`
+func (q *TxFIFOQueue) Enq(n *TransactionLog) *TxFIFOQueue {
+
+	q.queue.PushBack(n)
+	return q
+
 }
 
-func (q *TxQueue) IsEmpty() bool {
-	return len(*q) == 0
+func (q *TxFIFOQueue) Deq() *TransactionLog {
+	return q.queue.PopFront().(*TransactionLog)
 }
 
-func (q *TxQueue) Len() int {
-	return len(*q)
+func (q *TxFIFOQueue) IsEmpty() bool {
+	return q.queue.empty()
+}
+
+func (q *TxFIFOQueue) Len() int {
+	return q.queue.Len()
 }
