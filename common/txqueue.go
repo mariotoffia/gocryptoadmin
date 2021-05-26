@@ -1,13 +1,15 @@
 package common
 
+import "github.com/mariotoffia/gocryptoadmin/utils"
+
 type TxFIFOQueue struct {
-	queue *Queue
+	queue *utils.Queue
 }
 
 func NewTxFIFOQueue() *TxFIFOQueue {
 
 	return &TxFIFOQueue{
-		queue: NewQueue(),
+		queue: utils.NewQueue(),
 	}
 
 }
@@ -26,7 +28,7 @@ func (q *TxFIFOQueue) Deq() *TransactionLog {
 }
 
 func (q *TxFIFOQueue) IsEmpty() bool {
-	return q.queue.empty()
+	return q.queue.Empty()
 }
 
 func (q *TxFIFOQueue) Len() int {

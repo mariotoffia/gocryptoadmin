@@ -1,4 +1,4 @@
-package common
+package utils
 
 // NOTE: This queue implementation was taken from: https://github.com/phf/go-queue.
 // Many thanks for this great queue implementation.
@@ -58,7 +58,7 @@ func (q *Queue) Len() int {
 }
 
 // empty returns true if the queue q has no elements.
-func (q *Queue) empty() bool {
+func (q *Queue) Empty() bool {
 	return q.length == 0
 }
 
@@ -161,7 +161,7 @@ func (q *Queue) PushBack(v interface{}) {
 
 // PopFront removes and returns the first element of queue q or nil.
 func (q *Queue) PopFront() interface{} {
-	if q.empty() {
+	if q.Empty() {
 		return nil
 	}
 	v := q.rep[q.front]
@@ -174,7 +174,7 @@ func (q *Queue) PopFront() interface{} {
 
 // PopBack removes and returns the last element of queue q or nil.
 func (q *Queue) PopBack() interface{} {
-	if q.empty() {
+	if q.Empty() {
 		return nil
 	}
 	q.back = q.dec(q.back)
