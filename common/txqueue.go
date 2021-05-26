@@ -2,9 +2,31 @@ package common
 
 import "github.com/mariotoffia/gocryptoadmin/utils"
 
+type DequeueUntilResult int
+
+const (
+	// DequeueUntilResultContinue denotes that it should continue it dequeue and add the entry to
+	// the dequeue result.
+	DequeueUntilResultContinue DequeueUntilResult = 0
+	// DequeueUntilResultOverflow specifies that the last entry should be added, but it will overflow
+	// the actual amount.
+	//
+	// This is useful, when partial `common.TransactionEntry` must be used by the client.
+	DequeueUntilResultOverflow DequeueUntilResult = 1
+	// DequeueUntilResultDone will make the `DequeueUntil` to stop with Success status. It will
+	// add the last dequeue item onto the result.
+	DequeueUntilResultDone DequeueUntilResult = 2
+)
+
 type FIFOTxQueue interface {
 	Enq(n TransactionEntry) FIFOTxQueue
+	PutBack(n TransactionEntry) FIFOTxQueue
 	Deq() TransactionEntry
+
+	DequeueUntil(
+		accept func(tx TransactionEntry) DequeueUntilResult,
+	) ([]TransactionEntry, DequeueUntilResult)
+
 	IsEmpty() bool
 	Len() int
 }
@@ -33,9 +55,39 @@ func (q *TxFIFOQueue) Enq(n TransactionEntry) FIFOTxQueue {
 
 }
 
-// Deq will dequeue the first pushed `TransactionLog`.
+// PutBack will enqueue the `TransactionEntry` but make it available
+// on subsequent `Deq` (ordinary it would be last, since last enqueued)
+func (q *TxFIFOQueue) PutBack(n TransactionEntry) FIFOTxQueue {
+
+	q.queue.PushFront(n)
+	return q
+
+}
+
+// Deq will dequeue the first pushed `TransactionEntry`.
 func (q *TxFIFOQueue) Deq() TransactionEntry {
 	return q.queue.PopFront().(TransactionEntry)
+}
+
+func (q *TxFIFOQueue) DequeueUntil(
+	accept func(tx TransactionEntry) DequeueUntilResult,
+) ([]TransactionEntry, DequeueUntilResult) {
+
+	entries := []TransactionEntry{}
+
+	for !q.queue.Empty() {
+
+		entry := q.Deq()
+		entries = append(entries, entry)
+
+		if res := accept(entry); res != DequeueUntilResultContinue {
+			return entries, res
+		}
+
+	}
+
+	return entries, DequeueUntilResultDone
+
 }
 
 func (q *TxFIFOQueue) IsEmpty() bool {
@@ -62,9 +114,27 @@ func (q *TxAssetFIFOQueues) Enq(asset AssetType, n TransactionEntry) *TxAssetFIF
 
 }
 
+// PutBack will enqueue the `TransactionEntry` but make it available
+// on subsequent `Deq` (ordinary it would be last, since last enqueued)
+func (q *TxAssetFIFOQueues) PutBack(asset AssetType, n TransactionEntry) *TxAssetFIFOQueues {
+
+	q.getQueue(asset).PutBack(n)
+	return q
+
+}
+
 // Deq will dequeue the first pushed `TransactionLog` onto the _asset_ queue.
 func (q *TxAssetFIFOQueues) Deq(asset AssetType) TransactionEntry {
 	return q.getQueue(asset).Deq().(TransactionEntry)
+}
+
+func (q *TxAssetFIFOQueues) DequeueUntil(
+	asset AssetType,
+	accept func(tx TransactionEntry) DequeueUntilResult,
+) ([]TransactionEntry, DequeueUntilResult) {
+
+	return q.getQueue(asset).DequeueUntil(accept)
+
 }
 
 func (q *TxAssetFIFOQueues) IsEmpty(asset AssetType) bool {
