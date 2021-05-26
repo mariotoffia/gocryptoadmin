@@ -56,7 +56,9 @@ func (proc *CostUnitProcessor) Reset() {
 func (proc *CostUnitProcessor) ProcessMany(tx []common.TransactionLog) {
 
 	for i := range tx {
+
 		proc.Process(tx[i])
+
 	}
 
 }
