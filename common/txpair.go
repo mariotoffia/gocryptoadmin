@@ -5,10 +5,10 @@ import "time"
 type TxPair interface {
 	Sell() TxGroupEntry
 	Buy() TxGroupEntry
-	SellACreatedAt() time.Time
-	BuyBCreatedAt() time.Time
+	SellCreatedAt() time.Time
+	BuyCreatedAt() time.Time
 	SellTotal() float64
-	SideBTotal() float64
+	BuyTotal() float64
 	// SellProminent gets the entry with the most `AssetSize`
 	SellProminent() TransactionEntry
 	// BuyProminent gets the entry with the most `AssetSize`
@@ -22,7 +22,7 @@ type TxPair interface {
 // (even if it is just considered as a single transaction).
 type TxPairEntry struct {
 	SellTx TxGroupEntry
-	BuyBTx TxGroupEntry
+	BuyTx  TxGroupEntry
 }
 
 func (tx *TxPairEntry) Sell() TxGroupEntry {
@@ -33,7 +33,7 @@ func (tx *TxPairEntry) Sell() TxGroupEntry {
 
 func (tx *TxPairEntry) Buy() TxGroupEntry {
 
-	return tx.BuyBTx
+	return tx.BuyTx
 
 }
 
@@ -45,7 +45,7 @@ func (tx *TxPairEntry) SellCreatedAt() time.Time {
 
 func (tx *TxPairEntry) BuyCreatedAt() time.Time {
 
-	return tx.BuyBTx.GetCreatedAt()
+	return tx.BuyTx.GetCreatedAt()
 
 }
 
@@ -57,7 +57,7 @@ func (tx *TxPairEntry) SellTotal() float64 {
 
 func (tx *TxPairEntry) BuyTotal() float64 {
 
-	return tx.BuyBTx.GetTotalPrice()
+	return tx.BuyTx.GetTotalPrice()
 
 }
 
@@ -71,6 +71,6 @@ func (tx *TxPairEntry) SellProminent() TransactionEntry {
 // BuyProminent gets the entry with the most `AssetSize`
 func (tx *TxPairEntry) BuyProminent() TransactionEntry {
 
-	return tx.BuyBTx.GetMostProminentSizeTransactionLog()
+	return tx.BuyTx.GetMostProminentSizeTransactionLog()
 
 }

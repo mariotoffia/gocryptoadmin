@@ -71,11 +71,13 @@ func (bs *TxBuySellProcessor) Process(tx common.TransactionEntry) {
 
 	}
 
-	// TODO: entries are the BUY transactions that matches this single sell!
-	// TODO: Create TxPair and assign buy and sell side -> bs.entries
+	// Entries are the BUY transactions that matches this single sell!
+	// Create TxPair and assign buy and sell side -> bs.entries
+	bs.entries = append(bs.entries, &common.TxPairEntry{
+		SellTx: common.TxGroupEntry{Tx: []common.TransactionEntry{tx}},
+		BuyTx:  common.TxGroupEntry{Tx: entries},
+	})
 
-	fmt.Println(tx)      // SELL
-	fmt.Println(entries) // BUY
 }
 
 // ProcessBuy will process a _tx_ that reflects a BUY transaction.
