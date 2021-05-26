@@ -16,6 +16,8 @@ const (
 	// DequeueUntilResultDone will make the `DequeueUntil` to stop with Success status. It will
 	// add the last dequeue item onto the result.
 	DequeueUntilResultDone DequeueUntilResult = 2
+	// DequeueUntilResultUnderflow is when not enough entries where captured to satisfy the accept function.
+	DequeueUntilResultUnderflow DequeueUntilResult = 3
 )
 
 type FIFOTxQueue interface {
@@ -84,6 +86,10 @@ func (q *TxFIFOQueue) DequeueUntil(
 			return entries, res
 		}
 
+	}
+
+	if len(entries) != 0 {
+		return entries, DequeueUntilResultUnderflow
 	}
 
 	return entries, DequeueUntilResultDone
