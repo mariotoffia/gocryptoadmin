@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/ahmetb/go-linq/v3"
@@ -43,6 +44,7 @@ type TxLogGroup interface {
 	GetMostProminentSizeTransactionLog() TransactionLog
 }
 type TxGroupEntry struct {
+	// Not used, just derivation
 	TransactionLog
 	Tx []TransactionLog `csv:"-" json:"logs"`
 }
@@ -249,6 +251,125 @@ func (txg *TxGroupEntry) GetMostProminentSizeTransactionLog() TransactionLog {
 	}
 
 	return txg.Tx[found]
+
+}
+
+func (txg *TxGroupEntry) Clone() TransactionEntry {
+
+	e := &TxGroupEntry{TransactionLog: txg.TransactionLog}
+
+	if len(txg.Tx) > 0 {
+		e.Tx = append(e.Tx, txg.Tx...)
+	}
+
+	return e
+
+}
+
+func (txg *TxGroupEntry) SplitSize(
+	size float64,
+) (sized TransactionEntry, overflow TransactionEntry) {
+
+	szd := &TxGroupEntry{TransactionLog: txg.TransactionLog}
+	ofl := &TxGroupEntry{TransactionLog: txg.TransactionLog}
+
+	found := txg.FindBySize(size, true /*closest*/)
+
+	if found == -1 {
+
+		// Brute-force, add entries until sized (may need to split last entry) -> sized
+		// Rest (including overflow on last split - if needed) -> overflow
+		for i, entry := range txg.Tx {
+
+			size -= entry.AssetSize
+
+			if size == 0 {
+
+				// We're done
+				szd.Tx = append(szd.Tx, entry)
+				ofl.Tx = append(ofl.Tx, txg.Tx[i+1:]...)
+
+				break
+
+			}
+
+			if size < 0 {
+				// We're done, but need to split this entry
+				entrysized, entryoverflow := entry.SplitSize(size)
+
+				szd.Tx = append(szd.Tx, *entrysized.(*TransactionLog))
+
+				ofl.Tx = append(ofl.Tx, *entryoverflow.(*TransactionLog))
+				ofl.Tx = append(ofl.Tx, txg.Tx[i+1:]...)
+
+				break
+
+			}
+
+			szd.Tx = append(szd.Tx, entry)
+
+		}
+
+		return szd, ofl
+	}
+
+	entry := txg.Tx[found]
+
+	if entry.AssetSize == size {
+
+		szd.Tx = []TransactionLog{entry}
+		ofl.Tx = append(txg.Tx[:found], txg.Tx[found+1:]...)
+		return szd, ofl
+
+	}
+
+	// Not exact match -> split entry use sized -> sized
+	// Use overflow on split + all others in tx -> overflow
+	entrysized, entryoverflow := entry.SplitSize(size)
+
+	szd.Tx = []TransactionLog{*entrysized.(*TransactionLog)}
+
+	ofl.Tx = append(txg.Tx[:found], *entryoverflow.(*TransactionLog))
+	ofl.Tx = append(ofl.Tx, txg.Tx[found+1:]...)
+
+	return szd, ofl
+
+}
+
+func (txg *TxGroupEntry) FindBySize(size float64, closest bool) int {
+
+	idx := -1
+	check := math.MaxFloat64
+
+	for i, entry := range txg.Tx {
+
+		if entry.AssetSize == size {
+			return i
+		}
+
+		if !closest {
+			continue
+		}
+
+		approx := entry.AssetSize - size
+
+		// Only entries larger than size chan be closest
+		if approx < 0 {
+			continue
+		}
+
+		if approx < check {
+			check = approx
+			idx = i
+		}
+
+	}
+
+	if !closest {
+		return -1
+	}
+
+	return idx
 
 }
 

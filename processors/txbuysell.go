@@ -99,6 +99,14 @@ func (bs *TxBuySellProcessor) ProcessBuy(tx common.TransactionEntry) {
 	bs.queue.Enq(assetPair.CostUnit, putback)
 }
 
+func (bs *TxBuySellProcessor) Flush() []common.TxPair {
+
+	p := bs.entries
+	bs.Reset()
+	return p
+
+}
+
 // splitEntryByOverflow will split the _tx_ into the one to "keep" and the one
 // overflow. The overflow is specified in _size_ and not total price. Hence,
 // this is meant to split crypto BUY transactions that did not, exactly, match up a SELL.
@@ -107,14 +115,7 @@ func splitEntryByOverflow(
 	overflow float64,
 ) (keep common.TransactionEntry, putback common.TransactionEntry) {
 
-	return nil, nil
-}
-
-func (bs *TxBuySellProcessor) Flush() []common.TxPair {
-
-	p := bs.entries
-	bs.Reset()
-	return p
+	return tx.SplitSize(overflow)
 
 }
 

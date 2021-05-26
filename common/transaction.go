@@ -2,6 +2,8 @@ package common
 
 import (
 	"time"
+
+	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
 type SideType string
@@ -48,6 +50,11 @@ type TransactionEntry interface {
 	GetTotalPrice() float64
 
 	GetAssetPair() AssetPair
+	Clone() TransactionEntry
+	// SplitSize will split the current `TransactionEntry` by creating one by _size_ and
+	// the other _overflow_ with the rest. All data is recalculated on each side, _split_ and _overflow_
+	// so adding up both will have the same sums as the current one.
+	SplitSize(size float64) (sized TransactionEntry, overflow TransactionEntry)
 }
 
 // TransactionLog represents a single transaction
@@ -70,6 +77,93 @@ type TransactionLog struct {
 
 func (tx *TransactionLog) GetID() string {
 	return tx.ID
+}
+
+// SplitSize will split the current `TransactionEntry` by creating one by _size_ and
+// the other _overflow_ with the rest. All data is recalculated on each side, _split_ and _overflow_
+// so adding up both will have the same sums as the current one.
+func (tx *TransactionLog) SplitSize(
+	size float64,
+) (sized TransactionEntry, overflow TransactionEntry) {
+
+	percent := utils.ToFixed(size/tx.AssetSize, 8)
+
+	szd := tx.Clone().(*TransactionLog)
+	ofl := tx.Clone().(*TransactionLog)
+
+	szd.AssetSize = size
+	ofl.AssetSize = tx.AssetSize - size
+
+	szd.Fee = utils.ToFixed(tx.Fee*percent, 8)
+	ofl.Fee = utils.ToFixed(tx.Fee-szd.Fee, 8)
+	szd.TotalPrice = utils.ToFixed(tx.TotalPrice*percent, 8)
+	ofl.TotalPrice = utils.ToFixed(tx.TotalPrice-szd.TotalPrice, 8)
+
+	if len(tx.TranslatedFee) > 0 {
+
+		for k, v := range szd.TranslatedFee {
+
+			fee := v * percent
+
+			szd.TranslatedFee[k] = utils.ToFixed(fee, 8)
+			ofl.TranslatedFee[k] = utils.ToFixed(v-fee, 8)
+
+		}
+
+	}
+
+	if len(tx.TranslatedTotalPrice) > 0 {
+
+		for k, v := range szd.TranslatedTotalPrice {
+
+			fee := v * percent
+
+			szd.TranslatedTotalPrice[k] = utils.ToFixed(fee, 8)
+			ofl.TranslatedTotalPrice[k] = utils.ToFixed(v-fee, 8)
+
+		}
+
+	}
+
+	return szd, ofl
+}
+
+func (tx *TransactionLog) Clone() TransactionEntry {
+
+	l := &TransactionLog{
+		ID:           tx.ID,
+		Exchange:     tx.Exchange,
+		Side:         tx.Side,
+		CreatedAt:    tx.CreatedAt,
+		AssetSize:    tx.AssetSize,
+		PricePerUnit: tx.PricePerUnit,
+		Fee:          tx.Fee,
+		TotalPrice:   tx.TotalPrice,
+		AssetPair: AssetPair{
+			Asset:    tx.Asset,
+			CostUnit: tx.CostUnit,
+		},
+	}
+
+	if len(tx.TranslatedFee) > 0 {
+
+		l.TranslatedFee = map[string]float64{}
+		for k, v := range tx.TranslatedFee {
+			l.TranslatedFee[k] = v
+		}
+
+	}
+
+	if len(tx.TranslatedTotalPrice) > 0 {
+
+		l.TranslatedTotalPrice = map[string]float64{}
+		for k, v := range tx.TranslatedTotalPrice {
+			l.TranslatedTotalPrice[k] = v
+		}
+
+	}
+
+	return l
 }
 
 func (tx *TransactionLog) GetTranslatedTotalPrice(asset AssetType) float64 {

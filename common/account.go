@@ -166,6 +166,39 @@ func (acc *AccountLog) GetAssetPair() AssetPair {
 	return acc.tx.GetAssetPair()
 }
 
+func (acc *AccountLog) Clone() TransactionEntry {
+
+	a := &AccountLog{
+		tx:     acc.tx.Clone(),
+		sorted: acc.sorted,
+	}
+
+	if len(acc.status) > 0 {
+
+		a.status = AccountStatus{}
+		for k, v := range acc.status {
+			a.status[k] = v
+		}
+	}
+
+	return a
+
+}
+
+func (acc *AccountLog) SplitSize(
+	size float64,
+) (sized TransactionEntry, overflow TransactionEntry) {
+
+	szd := acc.Clone().(*AccountLog)
+	ofl := acc.Clone().(*AccountLog)
+
+	a, b := acc.tx.SplitSize(size)
+	szd.tx = a
+	ofl.tx = b
+
+	return szd, ofl
+}
+
 // ConsoleString implements the `ConsoleFormatter` interface
 func (acc *AccountLog) ConsoleHeader() string {
 	s := "Exchange\tSide\t\tSide Identifier\t\tDate\t\t\tPair\tSize\t\tPrice\t\tFee\t\tTotal"
