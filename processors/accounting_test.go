@@ -29,8 +29,8 @@ func TestAccountingCoinbaseProFiles(t *testing.T) {
 	txg := proc.Flush()
 
 	acc := NewAccountingProcessor(common.ExchangeAll)
-	for i := range txg {
-		acc.Process(&txg[i]) // Since accepting interface, use indexer
+	for _, tx := range txg {
+		acc.Process(&tx) // Since accepting interface, use indexer
 	}
 
 	txa := acc.Flush()
@@ -66,8 +66,8 @@ func TestReceiveAndSellAllShallHaveOnlyEuroLeft(t *testing.T) {
 	txg := proc.Flush()
 
 	acc := NewAccountingProcessor(common.ExchangeAll)
-	for i := range txg {
-		acc.Process(&txg[i]) // Since accepting interface, use indexer
+	for _, tx := range txg {
+		acc.Process(&tx) // Since accepting interface, use indexer
 	}
 
 	txa := acc.Flush()
@@ -91,8 +91,8 @@ func TestWhenSideIdPresentItShallBeOnTxLog(t *testing.T) {
 	txg := proc.Flush()
 
 	acc := NewAccountingProcessor(common.ExchangeAll)
-	for i := range txg {
-		acc.Process(&txg[i]) // Since accepting interface, use indexer
+	for _, tx := range txg {
+		acc.Process(&tx) // Since accepting interface, use indexer
 	}
 
 	txa := acc.Flush()
@@ -116,8 +116,8 @@ func TestWhenSideIdNotPresentItShallNotBeOnTxLog(t *testing.T) {
 	txg := proc.Flush()
 
 	acc := NewAccountingProcessor(common.ExchangeAll)
-	for i := range txg {
-		acc.Process(&txg[i]) // Since accepting interface, use indexer
+	for _, tx := range txg {
+		acc.Process(&tx) // Since accepting interface, use indexer
 	}
 
 	txa := acc.Flush()
@@ -141,8 +141,8 @@ func TestReceiveAndSellReceive(t *testing.T) {
 	txg := proc.Flush()
 
 	acc := NewAccountingProcessor(common.ExchangeAll)
-	for i := range txg {
-		acc.Process(&txg[i]) // Since accepting interface, use indexer
+	for _, tx := range txg {
+		acc.Process(&tx) // Since accepting interface, use indexer
 	}
 
 	txa := acc.Flush()

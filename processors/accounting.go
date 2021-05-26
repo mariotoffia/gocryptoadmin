@@ -51,6 +51,8 @@ func (ap *AccountingProcessor) Process(tx common.TransactionEntry) {
 
 	}
 
+	tx = tx.Clone()
+
 	acc := common.NextAccountLog(ap.previous, tx)
 
 	ap.entries = append(ap.entries, acc)
