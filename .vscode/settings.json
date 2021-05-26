@@ -1,14 +1,47 @@
 {
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": "\\.go$",
+                "cmd": "golines ${file} -w"
+            }
+        ]
+    },
     "cSpell.words": [
         "Antal",
+        "BTCEUR",
+        "BTCUSDT",
+        "ETHBTC",
+        "EURSEK",
+        "EURUSD",
         "F",
+        "Forex",
+        "Froehlich",
         "Försäljningsbelopp",
         "Försäljningsdatum",
         "Namn",
+        "OHLC",
+        "Printf",
+        "Println",
+        "SEKFIAT",
         "Skatt",
+        "Svensk",
+        "USDEUR",
+        "USDTUSD",
         "Vinst",
+        "XETH",
+        "XLTC",
+        "XXBT",
+        "XXLM",
+        "XXRP",
+        "ZEUR",
+        "ZSEK",
+        "ZUSD",
         "ahmetb",
+        "cbx",
+        "cuvolume",
         "gocryptoadmin",
+        "golines",
         "grpfee",
         "grpid",
         "grpsize",
@@ -18,13 +51,20 @@
         "linq",
         "ljningsbelopp",
         "ljningsdatum",
+        "mariotoffia",
         "pairme",
         "pushme",
         "rs",
+        "segmentio",
+        "sideid",
         "stretchr",
+        "testfiles",
         "txcommon",
         "txgroup",
+        "txhistory",
+        "txlog",
         "txprocessors",
-        "txsell"
+        "txsell",
+        "vwap"
     ]
 }
