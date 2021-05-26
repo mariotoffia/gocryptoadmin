@@ -69,8 +69,11 @@ func (bs *TxBuySellProcessor) Process(tx common.TransactionEntry) {
 
 	}
 
+	// TODO: entries are the BUY transactions that matches this single sell!
 	// TODO: Create TxPair and assign buy and sell side -> bs.entries
-	fmt.Println(entries)
+
+	fmt.Println(tx)      // SELL
+	fmt.Println(entries) // BUY
 }
 
 // ProcessBuy will process a _tx_ that reflects a BUY transaction.

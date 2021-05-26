@@ -7,8 +7,6 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/common"
 )
 
-// TODO: need to handle cache
-
 type TxOHCReader struct {
 	readers map[string]common.TxOHCReader
 }

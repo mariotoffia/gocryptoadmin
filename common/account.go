@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"time"
+
+	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
 // AccountStatus contains all assets and their current status.
@@ -192,9 +194,20 @@ func (acc *AccountLog) SplitSize(
 	szd := acc.Clone().(*AccountLog)
 	ofl := acc.Clone().(*AccountLog)
 
-	a, b := acc.tx.SplitSize(size)
-	szd.tx = a
-	ofl.tx = b
+	sized, overflow = acc.tx.SplitSize(size)
+	percent := sized.GetAssetSize() / size
+
+	szd.tx = sized
+	ofl.tx = overflow
+
+	for k, v := range szd.status {
+
+		status := v * percent
+
+		szd.status[k] = utils.ToFixed(status, 8)
+		ofl.status[k] = utils.ToFixed(v-status, 8)
+
+	}
 
 	return szd, ofl
 }

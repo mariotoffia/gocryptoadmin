@@ -3,16 +3,16 @@ package common
 import "time"
 
 type TxPair interface {
-	SideA() TxGroupEntry
-	SideB() TxGroupEntry
-	SideACreatedAt() time.Time
-	SideBCreatedAt() time.Time
-	SideATotal() float64
+	Sell() TxGroupEntry
+	Buy() TxGroupEntry
+	SellACreatedAt() time.Time
+	BuyBCreatedAt() time.Time
+	SellTotal() float64
 	SideBTotal() float64
-	// SideAProminent gets the entry with the most `AssetSize`
-	SideAProminent() TransactionLog
-	// SideBProminent gets the entry with the most `AssetSize`
-	SideBProminent() TransactionLog
+	// SellProminent gets the entry with the most `AssetSize`
+	SellProminent() TransactionLog
+	// BuyProminent gets the entry with the most `AssetSize`
+	BuyProminent() TransactionLog
 }
 
 // TxPairEntry is a pair of transaction entries.
@@ -21,56 +21,56 @@ type TxPair interface {
 // zero, one or both sides both sides are represented as `TxGroupEntry`
 // (even if it is just considered as a single transaction).
 type TxPairEntry struct {
-	SideATx TxGroupEntry
-	SideBTx TxGroupEntry
+	SellTx TxGroupEntry
+	BuyBTx TxGroupEntry
 }
 
-func (tx *TxPairEntry) SideA() TxGroupEntry {
+func (tx *TxPairEntry) Sell() TxGroupEntry {
 
-	return tx.SideATx
-
-}
-
-func (tx *TxPairEntry) SideB() TxGroupEntry {
-
-	return tx.SideBTx
+	return tx.SellTx
 
 }
 
-func (tx *TxPairEntry) SideACreatedAt() time.Time {
+func (tx *TxPairEntry) Buy() TxGroupEntry {
 
-	return tx.SideATx.GetCreatedAt()
-
-}
-
-func (tx *TxPairEntry) SideBCreatedAt() time.Time {
-
-	return tx.SideBTx.GetCreatedAt()
+	return tx.BuyBTx
 
 }
 
-func (tx *TxPairEntry) SideATotal() float64 {
+func (tx *TxPairEntry) SellCreatedAt() time.Time {
 
-	return tx.SideATx.GetTotalPrice()
-
-}
-
-func (tx *TxPairEntry) SideBTotal() float64 {
-
-	return tx.SideBTx.GetTotalPrice()
+	return tx.SellTx.GetCreatedAt()
 
 }
 
-// SideAProminent gets the entry with the most `AssetSize`
-func (tx *TxPairEntry) SideAProminent() TransactionLog {
+func (tx *TxPairEntry) BuyCreatedAt() time.Time {
 
-	return tx.SideATx.GetMostProminentSizeTransactionLog()
+	return tx.BuyBTx.GetCreatedAt()
 
 }
 
-// SideBProminent gets the entry with the most `AssetSize`
-func (tx *TxPairEntry) SideBProminent() TransactionLog {
+func (tx *TxPairEntry) SellTotal() float64 {
 
-	return tx.SideBTx.GetMostProminentSizeTransactionLog()
+	return tx.SellTx.GetTotalPrice()
+
+}
+
+func (tx *TxPairEntry) BuyTotal() float64 {
+
+	return tx.BuyBTx.GetTotalPrice()
+
+}
+
+// SellProminent gets the entry with the most `AssetSize`
+func (tx *TxPairEntry) SellProminent() TransactionLog {
+
+	return tx.SellTx.GetMostProminentSizeTransactionLog()
+
+}
+
+// BuyProminent gets the entry with the most `AssetSize`
+func (tx *TxPairEntry) BuyProminent() TransactionLog {
+
+	return tx.BuyBTx.GetMostProminentSizeTransactionLog()
 
 }
