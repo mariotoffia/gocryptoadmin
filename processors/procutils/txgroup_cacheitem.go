@@ -13,9 +13,9 @@ type TxGroupCacheItem struct {
 }
 
 // WithinWindow checks if the _tx_ is within the current window in the cache item.
-func (txi *TxGroupCacheItem) WithinWindow(tx common.TransactionLog) bool {
+func (txi *TxGroupCacheItem) WithinWindow(tx common.TransactionEntry) bool {
 
-	return tx.CreatedAt.Before(txi.next)
+	return tx.GetCreatedAt().Before(txi.next)
 
 }
 

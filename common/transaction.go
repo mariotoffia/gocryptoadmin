@@ -131,14 +131,15 @@ func (tx *TransactionLog) SplitSize(
 func (tx *TransactionLog) Clone() TransactionEntry {
 
 	l := &TransactionLog{
-		ID:           tx.ID,
-		Exchange:     tx.Exchange,
-		Side:         tx.Side,
-		CreatedAt:    tx.CreatedAt,
-		AssetSize:    tx.AssetSize,
-		PricePerUnit: tx.PricePerUnit,
-		Fee:          tx.Fee,
-		TotalPrice:   tx.TotalPrice,
+		ID:             tx.ID,
+		Exchange:       tx.Exchange,
+		Side:           tx.Side,
+		SideIdentifier: tx.SideIdentifier,
+		CreatedAt:      tx.CreatedAt,
+		AssetSize:      tx.AssetSize,
+		PricePerUnit:   tx.PricePerUnit,
+		Fee:            tx.Fee,
+		TotalPrice:     tx.TotalPrice,
 		AssetPair: AssetPair{
 			Asset:    tx.Asset,
 			CostUnit: tx.CostUnit,

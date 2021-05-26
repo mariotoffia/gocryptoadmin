@@ -50,7 +50,7 @@ func TestApplyEURCostUnit(t *testing.T) {
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
-		proc.Process(tx)
+		proc.Process(&tx)
 	}
 
 	txg := proc.Flush()

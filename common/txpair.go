@@ -10,9 +10,9 @@ type TxPair interface {
 	SellTotal() float64
 	SideBTotal() float64
 	// SellProminent gets the entry with the most `AssetSize`
-	SellProminent() TransactionLog
+	SellProminent() TransactionEntry
 	// BuyProminent gets the entry with the most `AssetSize`
-	BuyProminent() TransactionLog
+	BuyProminent() TransactionEntry
 }
 
 // TxPairEntry is a pair of transaction entries.
@@ -62,14 +62,14 @@ func (tx *TxPairEntry) BuyTotal() float64 {
 }
 
 // SellProminent gets the entry with the most `AssetSize`
-func (tx *TxPairEntry) SellProminent() TransactionLog {
+func (tx *TxPairEntry) SellProminent() TransactionEntry {
 
 	return tx.SellTx.GetMostProminentSizeTransactionLog()
 
 }
 
 // BuyProminent gets the entry with the most `AssetSize`
-func (tx *TxPairEntry) BuyProminent() TransactionLog {
+func (tx *TxPairEntry) BuyProminent() TransactionEntry {
 
 	return tx.BuyBTx.GetMostProminentSizeTransactionLog()
 

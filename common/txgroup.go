@@ -36,26 +36,26 @@ type TxLogGroup interface {
 	TransactionEntry
 	// GetTransactionEntries returns all underlying `TransactionLog` instances that
 	// is reflected in the `TransactionEntry` interface methods
-	GetTransactionEntries() []TransactionLog
+	GetTransactionEntries() []TransactionEntry
 	// AddTransactionEntry adds a single entry to the `TransactionLog` array
-	AddTransactionEntry(tx TransactionLog) *TxGroupEntry
+	AddTransactionEntry(tx TransactionEntry) *TxGroupEntry
 	// GetMostProminentSizeTransactionLog get the `TransactionLog` of largest `AssetSize`
 	// in the all of the `TransactionLog` instances.
-	GetMostProminentSizeTransactionLog() TransactionLog
+	GetMostProminentSizeTransactionLog() TransactionEntry
 }
 type TxGroupEntry struct {
 	// Not used, just derivation
 	TransactionLog
-	Tx []TransactionLog `csv:"-" json:"logs"`
+	Tx []TransactionEntry `json:"logs"`
 }
 
-func (txg *TxGroupEntry) GetTransactionEntries() []TransactionLog {
+func (txg *TxGroupEntry) GetTransactionEntries() []TransactionEntry {
 
 	return txg.Tx
 
 }
 
-func (txg *TxGroupEntry) AddTransactionEntry(tx TransactionLog) *TxGroupEntry {
+func (txg *TxGroupEntry) AddTransactionEntry(tx TransactionEntry) *TxGroupEntry {
 
 	txg.Tx = append(txg.Tx, tx)
 	return txg
@@ -68,7 +68,7 @@ func (txg *TxGroupEntry) GetExchange() string {
 		return ""
 	}
 
-	return txg.Tx[0].Exchange
+	return txg.Tx[0].GetExchange()
 
 }
 func (txg *TxGroupEntry) GetSide() SideType {
@@ -77,7 +77,7 @@ func (txg *TxGroupEntry) GetSide() SideType {
 		return SideTypeUnknown
 	}
 
-	return txg.Tx[0].Side
+	return txg.Tx[0].GetSide()
 
 }
 
@@ -87,7 +87,7 @@ func (txg *TxGroupEntry) GetSideIdentifier() string {
 		return ""
 	}
 
-	return txg.Tx[0].SideIdentifier
+	return txg.Tx[0].GetSideIdentifier()
 
 }
 
@@ -97,7 +97,7 @@ func (txg *TxGroupEntry) GetCreatedAt() time.Time {
 		return time.Time{}
 	}
 
-	return txg.Tx[0].CreatedAt
+	return txg.Tx[0].GetCreatedAt()
 
 }
 
@@ -109,7 +109,7 @@ func (txg *TxGroupEntry) GetAssetSize() float64 {
 
 	return linq.From(txg.Tx).
 		Select(func(tx interface{}) interface{} {
-			return tx.(TransactionLog).AssetSize
+			return tx.(TransactionEntry).GetAssetSize()
 		}).
 		SumFloats()
 
@@ -126,8 +126,8 @@ func (txg *TxGroupEntry) GetPricePerUnit() float64 {
 
 	for _, b := range txg.Tx {
 
-		weightedSize := b.AssetSize / totalSize
-		price = utils.ToFixed(price+(b.PricePerUnit*weightedSize), 8)
+		weightedSize := b.GetAssetSize() / totalSize
+		price = utils.ToFixed(price+(b.GetPricePerUnit()*weightedSize), 8)
 
 	}
 
@@ -143,7 +143,7 @@ func (txg *TxGroupEntry) GetFee() float64 {
 
 	return linq.From(txg.Tx).
 		Select(func(tx interface{}) interface{} {
-			return tx.(TransactionLog).Fee
+			return tx.(TransactionEntry).GetFee()
 		}).
 		SumFloats()
 
@@ -157,7 +157,7 @@ func (txg *TxGroupEntry) GetTotalPrice() float64 {
 
 	return linq.From(txg.Tx).
 		Select(func(tx interface{}) interface{} {
-			return tx.(TransactionLog).TotalPrice
+			return tx.(TransactionEntry).GetTotalPrice()
 		}).
 		SumFloats()
 
@@ -172,16 +172,7 @@ func (txg *TxGroupEntry) GetTranslatedTotalPrice(asset AssetType) float64 {
 	return linq.From(txg.Tx).
 		Select(func(tx interface{}) interface{} {
 
-			log := tx.(TransactionLog)
-			if log.TranslatedTotalPrice != nil {
-
-				if f, ok := log.TranslatedTotalPrice[string(asset)]; ok {
-					return f
-				}
-
-			}
-
-			panic("blended translated total price and none")
+			return tx.(TransactionEntry).GetTranslatedTotalPrice(asset)
 
 		}).
 		SumFloats()
@@ -197,16 +188,7 @@ func (txg *TxGroupEntry) GetTranslatedFee(asset AssetType) float64 {
 	return linq.From(txg.Tx).
 		Select(func(tx interface{}) interface{} {
 
-			log := tx.(TransactionLog)
-			if log.TranslatedFee != nil {
-
-				if f, ok := log.TranslatedFee[string(asset)]; ok {
-					return f
-				}
-
-			}
-
-			panic("blended translated total fee and none")
+			return tx.(TransactionEntry).GetTranslatedFee(asset)
 
 		}).
 		SumFloats()
@@ -229,14 +211,14 @@ func (txg *TxGroupEntry) GetAssetPair() AssetPair {
 		return AssetPair{}
 	}
 
-	return txg.Tx[0].AssetPair
+	return txg.Tx[0].GetAssetPair()
 
 }
 
-func (txg *TxGroupEntry) GetMostProminentSizeTransactionLog() TransactionLog {
+func (txg *TxGroupEntry) GetMostProminentSizeTransactionLog() TransactionEntry {
 
 	if len(txg.Tx) == 0 {
-		return TransactionLog{}
+		return &TransactionLog{}
 	}
 
 	max := float64(0)
@@ -244,8 +226,8 @@ func (txg *TxGroupEntry) GetMostProminentSizeTransactionLog() TransactionLog {
 
 	for i := range txg.Tx {
 
-		if txg.Tx[i].AssetSize > max {
-			max = txg.Tx[i].AssetSize
+		if txg.Tx[i].GetAssetSize() > max {
+			max = txg.Tx[i].GetAssetSize()
 			found = i
 		}
 	}
@@ -281,7 +263,7 @@ func (txg *TxGroupEntry) SplitSize(
 		// Rest (including overflow on last split - if needed) -> overflow
 		for i, entry := range txg.Tx {
 
-			size -= entry.AssetSize
+			size -= entry.GetAssetSize()
 
 			if size == 0 {
 
@@ -297,9 +279,9 @@ func (txg *TxGroupEntry) SplitSize(
 				// We're done, but need to split this entry
 				entrysized, entryoverflow := entry.SplitSize(size)
 
-				szd.Tx = append(szd.Tx, *entrysized.(*TransactionLog))
+				szd.Tx = append(szd.Tx, entrysized.(TransactionEntry))
 
-				ofl.Tx = append(ofl.Tx, *entryoverflow.(*TransactionLog))
+				ofl.Tx = append(ofl.Tx, entryoverflow.(TransactionEntry))
 				ofl.Tx = append(ofl.Tx, txg.Tx[i+1:]...)
 
 				break
@@ -315,9 +297,9 @@ func (txg *TxGroupEntry) SplitSize(
 
 	entry := txg.Tx[found]
 
-	if entry.AssetSize == size {
+	if entry.GetAssetSize() == size {
 
-		szd.Tx = []TransactionLog{entry}
+		szd.Tx = []TransactionEntry{entry}
 		ofl.Tx = append(txg.Tx[:found], txg.Tx[found+1:]...)
 		return szd, ofl
 
@@ -327,9 +309,9 @@ func (txg *TxGroupEntry) SplitSize(
 	// Use overflow on split + all others in tx -> overflow
 	entrysized, entryoverflow := entry.SplitSize(size)
 
-	szd.Tx = []TransactionLog{*entrysized.(*TransactionLog)}
+	szd.Tx = []TransactionEntry{entrysized.(TransactionEntry)}
 
-	ofl.Tx = append(txg.Tx[:found], *entryoverflow.(*TransactionLog))
+	ofl.Tx = append(txg.Tx[:found], entryoverflow.(TransactionEntry))
 	ofl.Tx = append(ofl.Tx, txg.Tx[found+1:]...)
 
 	return szd, ofl
@@ -343,7 +325,7 @@ func (txg *TxGroupEntry) FindBySize(size float64, closest bool) int {
 
 	for i, entry := range txg.Tx {
 
-		if entry.AssetSize == size {
+		if entry.GetAssetSize() == size {
 			return i
 		}
 
@@ -351,7 +333,7 @@ func (txg *TxGroupEntry) FindBySize(size float64, closest bool) int {
 			continue
 		}
 
-		approx := entry.AssetSize - size
+		approx := entry.GetAssetSize() - size
 
 		// Only entries larger than size chan be closest
 		if approx < 0 {

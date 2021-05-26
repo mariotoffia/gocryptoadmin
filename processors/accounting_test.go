@@ -23,7 +23,7 @@ func TestAccountingCoinbaseProFiles(t *testing.T) {
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
-		proc.Process(tx)
+		proc.Process(&tx)
 	}
 
 	txg := proc.Flush()
@@ -60,7 +60,7 @@ func TestReceiveAndSellAllShallHaveOnlyEuroLeft(t *testing.T) {
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
-		proc.Process(tx)
+		proc.Process(&tx)
 	}
 
 	txg := proc.Flush()
@@ -85,7 +85,7 @@ func TestWhenSideIdPresentItShallBeOnTxLog(t *testing.T) {
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
-		proc.Process(tx)
+		proc.Process(&tx)
 	}
 
 	txg := proc.Flush()
@@ -110,7 +110,7 @@ func TestWhenSideIdNotPresentItShallNotBeOnTxLog(t *testing.T) {
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
-		proc.Process(tx)
+		proc.Process(&tx)
 	}
 
 	txg := proc.Flush()
@@ -135,7 +135,7 @@ func TestReceiveAndSellReceive(t *testing.T) {
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
-		proc.Process(tx)
+		proc.Process(&tx)
 	}
 
 	txg := proc.Flush()
@@ -192,7 +192,7 @@ func TestMultiExchangeSingleAccount(t *testing.T) {
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
-		proc.Process(tx)
+		proc.Process(&tx)
 	}
 
 	txg := proc.Flush()

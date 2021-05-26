@@ -20,7 +20,7 @@ func TestReadCoinbasedTxLogFiles(t *testing.T) {
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/) // time.Duration(30 * 60)
 
 	for _, tx := range tx {
-		proc.Process(tx)
+		proc.Process(&tx)
 	}
 
 	txg := proc.Flush()

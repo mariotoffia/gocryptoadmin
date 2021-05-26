@@ -54,6 +54,8 @@ func (bs *TxBuySellProcessor) Process(tx common.TransactionEntry) {
 
 	if !assetPair.CostUnit.IsFIAT() {
 		// Got crypto as payment
+		// TODO: Mark as "NO_TAX" since this entry is now already taxed
+		// TODO: due to the _tx_ is sold and tax is paid for that.
 		bs.queue.Enq(assetPair.CostUnit, tx)
 	}
 

@@ -82,14 +82,15 @@ func (txg *TxGroupProcessor) Reset() {
 // 2. Within Group Window (if any)
 //
 // If any of the above bullets fail, all _"Open"_ `Transaction` instances should be merged.
-func (txg *TxGroupProcessor) Process(tx common.TransactionLog) {
+func (txg *TxGroupProcessor) Process(tx common.TransactionEntry) {
 
+	tx = tx.Clone()
 	item, ok := txg.cache.GetCache(tx, nil /*no override*/)
 
 	if !ok {
 
 		// 1.
-		if items, found := txg.cache.GetAssetPairWhenNonFIAT(tx.AssetPair); found {
+		if items, found := txg.cache.GetAssetPairWhenNonFIAT(tx.GetAssetPair()); found {
 
 			for i := range items {
 
@@ -121,7 +122,7 @@ func (txg *TxGroupProcessor) Process(tx common.TransactionLog) {
 }
 
 // ProcessMany is calling `Process` by iterating the _tx_ array
-func (txg *TxGroupProcessor) ProcessMany(tx []common.TransactionLog) {
+func (txg *TxGroupProcessor) ProcessMany(tx []common.TransactionEntry) {
 
 	for i := range tx {
 
