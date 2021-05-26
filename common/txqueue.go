@@ -20,6 +20,7 @@ func (q *TxFIFOQueue) Enq(n *TransactionLog) *TxFIFOQueue {
 
 }
 
+// Deq will dequeue the first pushed `TransactionLog`.
 func (q *TxFIFOQueue) Deq() *TransactionLog {
 	return q.queue.PopFront().(*TransactionLog)
 }
