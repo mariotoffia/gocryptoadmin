@@ -1,7 +1,6 @@
 package common
 
 import (
-	"fmt"
 	"math"
 	"time"
 
@@ -353,22 +352,4 @@ func (txg *TxGroupEntry) FindBySize(size float64, closest bool) int {
 
 	return idx
 
-}
-
-// ConsoleString implements the `ConsoleFormatter` interface
-func (txg *TxGroupEntry) ConsoleString() string {
-
-	s := fmt.Sprintf(
-		"%s\t%s\t%s\t%s\t%f\t%f\t%f\t%f\n",
-		txg.GetExchange(),
-		txg.GetSide(),
-		txg.GetCreatedAt().Format("2006-01-02 15:04:05.999999999"),
-		txg.GetAssetPair().String(),
-		txg.GetAssetSize(),
-		txg.GetPricePerUnit(),
-		txg.GetFee(),
-		txg.GetTotalPrice(),
-	)
-
-	return s
 }

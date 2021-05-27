@@ -1,7 +1,6 @@
 package processors
 
 import (
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -146,10 +145,6 @@ func TestReceiveAndSellReceive(t *testing.T) {
 	}
 
 	txa := acc.Flush()
-
-	cfa := txa[0].(common.ConsoleFormatter)
-	fmt.Println(cfa.ConsoleHeader())
-
 	op := output.NewStdPrinterDefaults(os.Stdout, "default")
 
 	for i, tx := range txa {

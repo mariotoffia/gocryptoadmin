@@ -40,42 +40,37 @@ Running read all _CSV_ , default _chronological_ sorter, transaction group _proc
 and multi account _processor_, the following output can be emitted.  
 
 ```bash
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+|Exchange  |Side     |Tx Date             |Pair    |Price / Unit     |Fee          |Total Price      |Account EUR      |Account LTC      |Account SEK      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+|lf        |BUY      |2017-12-06 08:00:00 |EUR-SEK | 10.000000       | 50.000000   |-550.000000      | 50.000000       | 0.000000        |-550.000000      |
+|lf        |TRANSFER |2017-12-06 09:00:00 |EUR-EUR | 1.000000        | 2.000000    |-50.000000       | 0.000000        | 0.000000        |-550.000000      |
+|kr        |RECEIVE  |2017-12-06 10:00:00 |EUR-EUR | 1.000000        | 3.000000    | 45.000000       | 45.000000       | 0.000000        |-550.000000      |
+|kr        |BUY      |2017-12-06 11:00:00 |LTC-EUR | 10.000000       | 4.000000    |-24.000000       | 21.000000       | 2.000000        |-550.000000      |
+|kr        |TRANSFER |2017-12-06 12:00:00 |LTC-LTC | 1.000000        | 0.100000    |-1.000000        | 21.000000       | 1.000000        |-550.000000      |
+|cbx       |RECEIVE  |2017-12-06 13:00:00 |LTC-LTC | 1.000000        | 0.100000    | 0.800000        | 21.000000       | 1.800000        |-550.000000      |
+|kr        |SELL     |2017-12-06 14:00:00 |LTC-EUR | 20.000000       | 2.000000    | 18.000000       | 39.000000       | 0.800000        |-550.000000      |
+|cbx       |SELL     |2017-12-06 15:00:00 |LTC-EUR | 30.000000       | 2.000000    | 22.000000       | 61.000000       | 0.000000        |-550.000000      |
 
-Exchange: kr
+------------------------------------------------------------------------------------------------------------------------------------------
+|Exchange  |Side     |Tx Date             |Pair    |Price / Unit     |Fee          |Total Price      |Account EUR      |Account SEK      |
+------------------------------------------------------------------------------------------------------------------------------------------
+|lf        |BUY      |2017-12-06 08:00:00 |EUR-SEK | 10.000000       | 50.000000   |-550.000000      | 50.000000       |-550.000000      |
+|lf        |TRANSFER |2017-12-06 09:00:00 |EUR-EUR | 1.000000        | 2.000000    |-50.000000       | 0.000000        |-550.000000      |
 
-Exchange	Side		Side Identifier		Date			Pair	Size		Price		Fee		Total		EUR		LTC
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-kr		RECEIVE		lf			2017-12-06 10:00:00	EUR-EUR	48.000000	1.000000	3.000000	45.000000	45.000000	0.000000
-kr		BUY		kr			2017-12-06 11:00:00	LTC-EUR	2.000000	10.000000	4.000000	-24.000000	21.000000	2.000000
-kr		TRANSFER	cb			2017-12-06 12:00:00	LTC-LTC	0.900000	1.000000	0.100000	-1.000000	21.000000	1.000000
-kr		SELL		kr			2017-12-06 14:00:00	LTC-EUR	1.000000	20.000000	2.000000	18.000000	39.000000	0.000000
+------------------------------------------------------------------------------------------------------------------------------------------
+|Exchange  |Side     |Tx Date             |Pair    |Price / Unit     |Fee          |Total Price      |Account EUR      |Account LTC      |
+------------------------------------------------------------------------------------------------------------------------------------------
+|kr        |RECEIVE  |2017-12-06 10:00:00 |EUR-EUR | 1.000000        | 3.000000    | 45.000000       | 45.000000       | 0.000000        |
+|kr        |BUY      |2017-12-06 11:00:00 |LTC-EUR | 10.000000       | 4.000000    |-24.000000       | 21.000000       | 2.000000        |
+|kr        |TRANSFER |2017-12-06 12:00:00 |LTC-LTC | 1.000000        | 0.100000    |-1.000000        | 21.000000       | 1.000000        |
+|kr        |SELL     |2017-12-06 14:00:00 |LTC-EUR | 20.000000       | 2.000000    | 18.000000       | 39.000000       | 0.000000        |
 
-Exchange: cb
-
-Exchange	Side		Side Identifier		Date			Pair	Size		Price		Fee		Total		EUR		LTC
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-cb		RECEIVE		kr			2017-12-06 13:00:00	LTC-LTC	0.900000	1.000000	0.100000	0.800000	0.000000	0.800000
-cb		SELL		cb			2017-12-06 15:00:00	LTC-EUR	0.800000	30.000000	2.000000	22.000000	22.000000	0.000000
-
-Exchange: all
-
-Exchange	Side		Side Identifier		Date			Pair	Size		Price		Fee		Total		EUR		LTC		SEK
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-lf		BUY		lf			2017-12-06 08:00:00	EUR-SEK	50.000000	10.000000	50.000000	-550.000000	50.000000	0.000000	-550.000000
-lf		TRANSFER	kr			2017-12-06 09:00:00	EUR-EUR	48.000000	1.000000	2.000000	-50.000000	0.000000	0.000000	-550.000000
-kr		RECEIVE		lf			2017-12-06 10:00:00	EUR-EUR	48.000000	1.000000	3.000000	45.000000	45.000000	0.000000	-550.000000
-kr		BUY		kr			2017-12-06 11:00:00	LTC-EUR	2.000000	10.000000	4.000000	-24.000000	21.000000	2.000000	-550.000000
-kr		TRANSFER	cb			2017-12-06 12:00:00	LTC-LTC	0.900000	1.000000	0.100000	-1.000000	21.000000	1.000000	-550.000000
-cb		RECEIVE		kr			2017-12-06 13:00:00	LTC-LTC	0.900000	1.000000	0.100000	0.800000	21.000000	1.800000	-550.000000
-kr		SELL		kr			2017-12-06 14:00:00	LTC-EUR	1.000000	20.000000	2.000000	18.000000	39.000000	0.800000	-550.000000
-cb		SELL		cb			2017-12-06 15:00:00	LTC-EUR	0.800000	30.000000	2.000000	22.000000	61.000000	0.000000	-550.000000
-
-Exchange: lf
-
-Exchange	Side		Side Identifier		Date			Pair	Size		Price		Fee		Total		EUR		SEK
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-lf		BUY		lf			2017-12-06 08:00:00	EUR-SEK	50.000000	10.000000	50.000000	-550.000000	50.000000	-550.000000
-lf		TRANSFER	kr			2017-12-06 09:00:00	EUR-EUR	48.000000	1.000000	2.000000	-50.000000	0.000000	-550.000000
+------------------------------------------------------------------------------------------------------------------------------------------
+|Exchange  |Side     |Tx Date             |Pair    |Price / Unit     |Fee          |Total Price      |Account EUR      |Account LTC      |
+------------------------------------------------------------------------------------------------------------------------------------------
+|cbx       |RECEIVE  |2017-12-06 13:00:00 |LTC-LTC | 1.000000        | 0.100000    | 0.800000        | 0.000000        | 0.800000        |
+|cbx       |SELL     |2017-12-06 15:00:00 |LTC-EUR | 30.000000       | 2.000000    | 22.000000       | 22.000000       | 0.000000        |
 ```
 
 The code to output this is the following.
@@ -85,7 +80,7 @@ func TestMultiExchangeMultiAccount(t *testing.T) {
 	txr := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
 		RegisterReader("lf", coinbasepro.NewTransactionLogReader()).
 		RegisterReader("kr", coinbasepro.NewTransactionLogReader()).
-		RegisterReader("cb", coinbasepro.NewTransactionLogReader())
+		RegisterReader("cbx", coinbasepro.NewTransactionLogReader())
 
 	tx := txr.ReadBufferAsExchange(
 		"lf", utils.ReadFile("testfiles/multi-exchange/lf.csv"),
@@ -100,13 +95,13 @@ func TestMultiExchangeMultiAccount(t *testing.T) {
 	tx = append(
 		tx,
 		txr.ReadBufferAsExchange(
-			"cb", utils.ReadFile("testfiles/multi-exchange/cb.csv"))...,
+			"cbx", utils.ReadFile("testfiles/multi-exchange/cb.csv"))...,
 	)
 
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
-		proc.Process(tx)
+		proc.Process(&tx)
 	}
 
 	txg := proc.Flush()
@@ -116,20 +111,17 @@ func TestMultiExchangeMultiAccount(t *testing.T) {
 		acc.Process(&txg[i]) // Since accepting interface, use indexer
 	}
 
-	for exchange, transactions := range acc.Flush() {
+	for _, transactions := range acc.Flush() {
 
-		cfa := transactions[0].(common.ConsoleFormatter)
+		op := output.NewStdPrinterDefaults(os.Stdout, "default")
 
-		fmt.Printf("\nExchange: %s\n\n", exchange)
-		fmt.Println(cfa.ConsoleHeader())
+		for _, tx := range transactions {
 
-		for i, tx := range transactions {
-
-			fmt.Println(
-				tx.(common.ConsoleFormatter).ConsoleString(),
-			)
-
+			op.Process(tx)
 		}
+
+		op.Flush()
+		fmt.Println()
 
 	}
 

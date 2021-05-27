@@ -1,7 +1,6 @@
 package common
 
 import (
-	"fmt"
 	"sort"
 	"time"
 
@@ -210,70 +209,6 @@ func (acc *AccountLog) SplitSize(
 	}
 
 	return szd, ofl
-}
-
-// ConsoleString implements the `ConsoleFormatter` interface
-func (acc *AccountLog) ConsoleHeader() string {
-	s := "Exchange\tSide\t\tSide Identifier\t\tDate\t\t\tPair\tSize\t\tPrice\t\tFee\t\tTotal"
-
-	for _, v := range acc.sorted {
-		s += fmt.Sprintf("\t\t%s", v)
-	}
-
-	/*
-		s += "\n-----------------------------------------------------------------------------------" +
-			"---------------------------------------------------------------------"
-
-		for i := 0; i < len(acc.sorted); i++ {
-			s += "----------------"
-		}*/
-
-	return s
-}
-
-// ConsoleString implements the `ConsoleFormatter` interface
-func (acc *AccountLog) ConsoleString() string {
-
-	var s string
-	if acc.GetSide() == SideTypeTransfer {
-
-		s = fmt.Sprintf(
-			"%s\t\t%s\t%s\t\t\t%s\t%s\t%f\t%f\t%f\t%f",
-			acc.GetExchange(),
-			acc.GetSide(),
-			acc.GetSideIdentifier(),
-			acc.GetCreatedAt().Format("2006-01-02 15:04:05.999999999"),
-			acc.GetAssetPair().String(),
-			acc.GetAssetSize(),
-			acc.GetPricePerUnit(),
-			acc.GetFee(),
-			acc.GetTotalPrice(),
-		)
-
-	} else {
-
-		s = fmt.Sprintf(
-			"%s\t\t%s\t\t%s\t\t\t%s\t%s\t%f\t%f\t%f\t%f",
-			acc.GetExchange(),
-			acc.GetSide(),
-			acc.GetSideIdentifier(),
-			acc.GetCreatedAt().Format("2006-01-02 15:04:05.999999999"),
-			acc.GetAssetPair().String(),
-			acc.GetAssetSize(),
-			acc.GetPricePerUnit(),
-			acc.GetFee(),
-			acc.GetTotalPrice(),
-		)
-
-	}
-
-	for _, v := range acc.sorted {
-
-		s += fmt.Sprintf("\t%f", acc.status[AssetType(v)])
-
-	}
-
-	return s
 }
 
 func (acc *AccountLog) setSortedKeys() {
