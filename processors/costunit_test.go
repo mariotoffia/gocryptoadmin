@@ -2,10 +2,12 @@ package processors
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
+	"github.com/mariotoffia/gocryptoadmin/output"
 	"github.com/mariotoffia/gocryptoadmin/parsers"
 	"github.com/mariotoffia/gocryptoadmin/txhistory"
 	"github.com/mariotoffia/gocryptoadmin/txlog"
@@ -66,37 +68,10 @@ func TestApplyEURCostUnit(t *testing.T) {
 			continue
 		}
 
-		cfa := transactions[0].(common.ConsoleFormatter)
-
-		fmt.Printf("\nExchange: %s\n\n", exchange)
-		fmt.Print(cfa.ConsoleHeader())
-
-		for _, asset := range transactions[0].GetTranslatedAssets() {
-
-			fmt.Printf(
-				"\t\tTotal_%s\tFee_%s", asset, asset)
-
-		}
-
-		fmt.Println()
-
+		op := output.NewStdPrinterDefaults(os.Stdout, "default")
 		for i, tx := range transactions {
 
-			fmt.Print(
-				tx.(common.ConsoleFormatter).ConsoleString(),
-			)
-
-			for _, asset := range tx.GetTranslatedAssets() {
-
-				fmt.Printf(
-					"\t%f\t%f",
-					tx.GetTranslatedTotalPrice(asset),
-					tx.GetTranslatedFee(asset),
-				)
-
-			}
-
-			fmt.Println("")
+			op.Process(tx)
 
 			if i == -1 {
 				break
@@ -104,6 +79,8 @@ func TestApplyEURCostUnit(t *testing.T) {
 
 		}
 
+		op.Flush()
+		fmt.Println()
 	}
 
 }

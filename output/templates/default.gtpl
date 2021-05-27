@@ -6,9 +6,9 @@
 {{- printf "|%-9v|" .GetSide }}
 {{- .GetCreatedAt.Format "2006-01-02 15:04:05 " }}
 {{- printf "|%-8s" .GetAssetPair.String }}
-{{- printf "|%-17f" .GetPricePerUnit }}
-{{- printf "|%-13f" .GetFee }}
-{{- printf "|%-17f|" .GetTotalPrice }}
+{{- printf "|% -17f" .GetPricePerUnit }}
+{{- printf "|% -13f" .GetFee }}
+{{- printf "|% -17f|" .GetTotalPrice }}
 {{- account . "value" "optional"}}
 {{- translated . "total-and-fee"}}
 {{end}}

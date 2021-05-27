@@ -1,11 +1,12 @@
 package processors
 
 import (
-	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
+	"github.com/mariotoffia/gocryptoadmin/output"
 	"github.com/mariotoffia/gocryptoadmin/parsers"
 	"github.com/mariotoffia/gocryptoadmin/txhistory"
 	"github.com/mariotoffia/gocryptoadmin/txlog"
@@ -62,41 +63,13 @@ func TestBuySell(t *testing.T) {
 
 	transactions := acc.Flush()
 
-	cfa := transactions[0].(common.ConsoleFormatter)
+	op := output.NewStdPrinterDefaults(os.Stdout, "default")
 
-	fmt.Print(cfa.ConsoleHeader())
+	for _, tx := range transactions {
 
-	for _, asset := range transactions[0].GetTranslatedAssets() {
-
-		fmt.Printf(
-			"\t\tTotal_%s\tFee_%s", asset, asset)
-
+		op.Process(tx)
 	}
 
-	fmt.Println()
-
-	for i, tx := range transactions {
-
-		fmt.Print(
-			tx.(common.ConsoleFormatter).ConsoleString(),
-		)
-
-		for _, asset := range tx.GetTranslatedAssets() {
-
-			fmt.Printf(
-				"\t%f\t%f",
-				tx.GetTranslatedTotalPrice(asset),
-				tx.GetTranslatedFee(asset),
-			)
-
-		}
-
-		fmt.Println("")
-
-		if i == -1 {
-			break
-		}
-
-	}
+	op.Flush()
 
 }

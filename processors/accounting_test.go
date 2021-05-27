@@ -2,10 +2,12 @@ package processors
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
+	"github.com/mariotoffia/gocryptoadmin/output"
 	"github.com/mariotoffia/gocryptoadmin/txlog"
 	"github.com/mariotoffia/gocryptoadmin/txlog/coinbasepro"
 	"github.com/mariotoffia/gocryptoadmin/utils"
@@ -35,20 +37,18 @@ func TestAccountingCoinbaseProFiles(t *testing.T) {
 
 	txa := acc.Flush()
 
-	cfa := txa[0].(common.ConsoleFormatter)
-	fmt.Println(cfa.ConsoleHeader())
+	op := output.NewStdPrinterDefaults(os.Stdout, "default")
 
 	for i, tx := range txa {
 
-		fmt.Println(
-			tx.(common.ConsoleFormatter).ConsoleString(),
-		)
-
+		op.Process(tx)
 		if i == -1 {
 			break
 		}
 
 	}
+
+	op.Flush()
 }
 
 func TestReceiveAndSellAllShallHaveOnlyEuroLeft(t *testing.T) {
@@ -67,7 +67,7 @@ func TestReceiveAndSellAllShallHaveOnlyEuroLeft(t *testing.T) {
 
 	acc := NewAccountingProcessor(common.ExchangeAll)
 	for _, tx := range txg {
-		acc.Process(&tx) // Since accepting interface, use indexer
+		acc.Process(&tx)
 	}
 
 	txa := acc.Flush()
@@ -92,7 +92,7 @@ func TestWhenSideIdPresentItShallBeOnTxLog(t *testing.T) {
 
 	acc := NewAccountingProcessor(common.ExchangeAll)
 	for _, tx := range txg {
-		acc.Process(&tx) // Since accepting interface, use indexer
+		acc.Process(&tx)
 	}
 
 	txa := acc.Flush()
@@ -117,7 +117,7 @@ func TestWhenSideIdNotPresentItShallNotBeOnTxLog(t *testing.T) {
 
 	acc := NewAccountingProcessor(common.ExchangeAll)
 	for _, tx := range txg {
-		acc.Process(&tx) // Since accepting interface, use indexer
+		acc.Process(&tx)
 	}
 
 	txa := acc.Flush()
@@ -142,7 +142,7 @@ func TestReceiveAndSellReceive(t *testing.T) {
 
 	acc := NewAccountingProcessor(common.ExchangeAll)
 	for _, tx := range txg {
-		acc.Process(&tx) // Since accepting interface, use indexer
+		acc.Process(&tx)
 	}
 
 	txa := acc.Flush()
@@ -150,17 +150,18 @@ func TestReceiveAndSellReceive(t *testing.T) {
 	cfa := txa[0].(common.ConsoleFormatter)
 	fmt.Println(cfa.ConsoleHeader())
 
+	op := output.NewStdPrinterDefaults(os.Stdout, "default")
+
 	for i, tx := range txa {
 
-		fmt.Println(
-			tx.(common.ConsoleFormatter).ConsoleString(),
-		)
-
-		if i == 5 {
+		op.Process(tx)
+		if i == -1 {
 			break
 		}
 
 	}
+
+	op.Flush()
 
 	assert.Equal(t, float64(0.0), txa[1].(common.AccountEntry).GetAccountStatus()["LTC"])
 	assert.Equal(t, float64(750.00135), txa[1].(common.AccountEntry).GetAccountStatus()["EUR"])
@@ -204,18 +205,16 @@ func TestMultiExchangeSingleAccount(t *testing.T) {
 
 	txa := acc.Flush()
 
-	cfa := txa[0].(common.ConsoleFormatter)
-	fmt.Println(cfa.ConsoleHeader())
+	op := output.NewStdPrinterDefaults(os.Stdout, "default")
 
 	for i, tx := range txa {
 
-		fmt.Println(
-			tx.(common.ConsoleFormatter).ConsoleString(),
-		)
-
+		op.Process(tx)
 		if i == -1 {
 			break
 		}
 
 	}
+
+	op.Flush()
 }

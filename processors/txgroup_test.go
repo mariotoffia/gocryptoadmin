@@ -2,9 +2,11 @@ package processors
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/mariotoffia/gocryptoadmin/output"
 	"github.com/mariotoffia/gocryptoadmin/txlog"
 	"github.com/mariotoffia/gocryptoadmin/txlog/coinbasepro"
 )
@@ -25,27 +27,14 @@ func TestReadCoinbasedTxLogFiles(t *testing.T) {
 
 	txg := proc.Flush()
 
-	fmt.Println("Exchange\tSide\tDate\t\t\tPair\tSize\t\tPrice\t\tFee\t\tTotal")
-	fmt.Println(
-		"---------------------------------------------------------" +
-			"-----------------------------------------------------",
-	)
+	op := output.NewStdPrinterDefaults(os.Stdout, "default")
 
 	for _, tx := range txg {
 
-		fmt.Printf(
-			"%s\t%s\t%s\t%s\t%f\t%f\t%f\t%f\n",
-			tx.GetExchange(),
-			tx.GetSide(),
-			tx.GetCreatedAt().Format("2006-01-02 15:04:05.999999999"),
-			tx.GetAssetPair().String(),
-			tx.GetAssetSize(),
-			tx.GetPricePerUnit(),
-			tx.GetFee(),
-			tx.GetTotalPrice(),
-		)
-
+		op.Process(&tx)
 	}
+
+	op.Flush()
 
 	fmt.Printf("tx.len: %d txg.len: %d\n", len(tx), len(txg))
 }

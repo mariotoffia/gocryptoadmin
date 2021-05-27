@@ -171,7 +171,7 @@ func (scp *StdPrinter) ProcessMany(tx []common.TransactionEntry) {
 
 func (scp *StdPrinter) Process(tx common.TransactionEntry) {
 
-	scp.entries = append(scp.entries, tx)
+	scp.entries = append(scp.entries, tx.Clone())
 
 	if scp.fullTemplate != "" {
 		return

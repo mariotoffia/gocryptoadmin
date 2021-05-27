@@ -96,7 +96,7 @@ func accountStatus(value interface{}, command string, assets ...string) string {
 
 	s := ""
 	for _, asset := range list {
-		s += fmt.Sprintf("%-17f|", status[asset])
+		s += fmt.Sprintf("% -17f|", status[asset])
 	}
 
 	return s
@@ -107,7 +107,13 @@ func translatedHeader(value interface{}, command string, assets ...string) strin
 	var entry common.TransactionEntry
 
 	if e, ok := value.([]common.TransactionEntry); ok {
+
+		if len(e) == 0 {
+			return ""
+		}
+
 		entry = e[0]
+
 	} else if e, ok := value.(common.TransactionEntry); ok {
 		entry = e
 	} else {
@@ -153,7 +159,7 @@ func translatedHeader(value interface{}, command string, assets ...string) strin
 		for _, asset := range list {
 
 			s += fmt.Sprintf(
-				"%-17f|%-13f|",
+				"% -17f|% -13f|",
 				entry.GetTranslatedTotalPrice(asset),
 				entry.GetTranslatedFee(asset),
 			)

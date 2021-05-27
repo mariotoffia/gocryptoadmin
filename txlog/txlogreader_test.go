@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/mariotoffia/gocryptoadmin/output"
 	"github.com/mariotoffia/gocryptoadmin/processors"
 	"github.com/mariotoffia/gocryptoadmin/txlog/coinbasepro"
 	"github.com/stretchr/testify/require"
@@ -43,15 +44,14 @@ default,382593,XLM-EUR,SELL,2019-06-26T13:35:46.772Z,439.00000000,XLM,0.11375,0.
 		RegisterReader("cbx", coinbasepro.NewTransactionLogReader()).
 		ReadBuffer("cbx", []byte(data))
 
+	proc := output.NewStdPrinterDefaults(os.Stdout, "default")
+
 	for _, tx := range tx {
 
-		fmt.Printf(
-			"[%s] %s %s %s \n S:%f  F:%f  T:%f P:%f\n",
-			tx.Exchange, tx.CreatedAt.String(), tx.Side, tx.Asset,
-			tx.AssetSize, tx.Fee, tx.TotalPrice, tx.PricePerUnit,
-		)
-
+		proc.Process(&tx)
 	}
+
+	proc.Flush()
 
 	fmt.Println(len(tx))
 }
@@ -64,15 +64,14 @@ func TestReadCoinbasedTxLogFiles(t *testing.T) {
 		RegisterReader("cbx", coinbasepro.NewTransactionLogReader()).
 		Read()
 
+	proc := output.NewStdPrinterDefaults(os.Stdout, "default")
+
 	for _, tx := range tx {
 
-		fmt.Printf(
-			"[%s] %s %s %s \n S:%f  F:%f  T:%f P:%f\n",
-			tx.Exchange, tx.CreatedAt.String(), tx.Side, tx.Asset,
-			tx.AssetSize, tx.Fee, tx.TotalPrice, tx.PricePerUnit,
-		)
-
+		proc.Process(&tx)
 	}
+
+	proc.Flush()
 
 	fmt.Println(len(tx))
 }
