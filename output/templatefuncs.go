@@ -2,6 +2,7 @@ package output
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -76,6 +77,10 @@ func accountStatus(value interface{}, command string, assets ...string) string {
 
 	}
 
+	sort.Slice(list, func(i, j int) bool {
+		return list[i] < list[j]
+	})
+
 	if len(list) == 0 {
 		return ""
 	}
@@ -134,6 +139,10 @@ func translatedHeader(value interface{}, command string, assets ...string) strin
 		}
 
 	}
+
+	sort.Slice(list, func(i, j int) bool {
+		return list[i] < list[j]
+	})
 
 	if len(list) == 0 {
 		return ""
