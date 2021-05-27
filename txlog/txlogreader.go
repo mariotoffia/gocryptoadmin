@@ -14,10 +14,10 @@ type TxLogReaderImpl struct {
 	dir           string
 	recursive     bool
 	ignoreUnknown bool
-	postProcessor common.TxEntryProcessor
+	postProcessor common.TxLogProcessor
 }
 
-func NewTxLogReader(postProcessor common.TxEntryProcessor) *TxLogReaderImpl {
+func NewTxLogReader(postProcessor common.TxLogProcessor) *TxLogReaderImpl {
 
 	return &TxLogReaderImpl{
 		readers:       map[string]common.TransactionLogReader{},

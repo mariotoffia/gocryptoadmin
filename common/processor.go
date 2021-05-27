@@ -5,13 +5,13 @@ type Processor interface {
 	Reset()
 }
 
-type TxAccountProcessor interface {
+type TxEntryProcessor interface {
 	Processor
 	Process(tx TransactionEntry)
 	Flush() []TransactionEntry
 }
 
-type TxEntryProcessor interface {
+type TxLogProcessor interface {
 	Processor
 	// Processes a transaction.
 	Process(tx TransactionLog)
