@@ -5,10 +5,19 @@ type Processor interface {
 	Reset()
 }
 
+type Flushable interface {
+	Flush() []TransactionEntry
+}
+
 type TxEntryProcessor interface {
 	Processor
 	Process(tx TransactionEntry)
-	Flush() []TransactionEntry
+	ProcessMany(tx []TransactionEntry)
+}
+
+type TxFlushableEntryProcessor interface {
+	TxEntryProcessor
+	Flushable
 }
 
 type TxLogProcessor interface {
