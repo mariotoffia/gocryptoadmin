@@ -52,6 +52,10 @@ func (txg *TxBuyGroupLog) AddTransactionEntry(tx TransactionEntry) *TxGroupEntry
 
 }
 
+// IsMultiAsset checks if all transactions do have the same
+// `AssetType`. If not it will return `false`.
+//
+// NOTE: When _SELL_ transactions it will check _CostUnit_ instead of _Asset_.
 func (txg *TxBuyGroupLog) IsMultiAsset() bool {
 
 	txg.multi = false
@@ -108,6 +112,12 @@ func (txg *TxBuyGroupLog) GetAssetSize() float64 {
 
 }
 
+// GetPricePerUnit returns the weighetd price per unit for all entires.
+//
+// Since _SELL_ transactions have incorrect cost unit, it will calculate
+// the price using `GetAssetSize() / (GetTotalPrice() - GetFee())`.
+//
+// CAUTION: It does not support multi asset entries!
 func (txg *TxBuyGroupLog) GetPricePerUnit() float64 {
 
 	if len(txg.Tx) == 0 {
@@ -133,7 +143,7 @@ func (txg *TxBuyGroupLog) GetPricePerUnit() float64 {
 				ppe = entry.GetAssetSize() / (entry.GetTotalPrice() - entry.GetFee())
 			}
 
-			price = utils.ToFixed(price+(ppe*weightedSize), 8)
+			price += utils.ToFixed(price+(ppe*weightedSize), 8)
 			return true
 		})
 
@@ -141,6 +151,12 @@ func (txg *TxBuyGroupLog) GetPricePerUnit() float64 {
 
 }
 
+// GetFee returns the sum of all fees.
+//
+// Since _SELL_ entries do have fee in incorrect cost unit,
+// it is calculated using  `GetFee() / GetPricePerUnit()`.
+//
+// CAUTION: It does not support multi asset entries!
 func (txg *TxBuyGroupLog) GetFee() float64 {
 
 	if len(txg.Tx) == 0 {
@@ -158,7 +174,7 @@ func (txg *TxBuyGroupLog) GetFee() float64 {
 			if side == SideTypeBuy {
 				fee += entry.GetFee()
 			} else {
-				fee = entry.GetFee() / entry.GetPricePerUnit()
+				fee += entry.GetFee() / entry.GetPricePerUnit()
 			}
 
 			return true
@@ -168,6 +184,13 @@ func (txg *TxBuyGroupLog) GetFee() float64 {
 
 }
 
+// GetTotalPrice calculates the total price.
+//
+// On _BUY_ it uses the `GetTotalPrice` but on _SELL_,
+// it uses the `GetAssetSize` since that denotes the
+// price.
+//
+// CAUTION: It does not support multi asset entries!
 func (txg *TxBuyGroupLog) GetTotalPrice() float64 {
 
 	if len(txg.Tx) == 0 {
@@ -185,7 +208,7 @@ func (txg *TxBuyGroupLog) GetTotalPrice() float64 {
 			if side == SideTypeBuy {
 				price += entry.GetTotalPrice()
 			} else {
-				price = entry.GetAssetSize()
+				price += entry.GetAssetSize()
 			}
 
 			return true
@@ -194,6 +217,8 @@ func (txg *TxBuyGroupLog) GetTotalPrice() float64 {
 	return price
 }
 
+// GetTranslatedTotalPrice is overloaded due to that we need to set the sell total
+// price as negative since it is, in this `TxBuyGroup` counted as it where a sort of a _BUY_.
 func (txg *TxBuyGroupLog) GetTranslatedTotalPrice(asset AssetType) float64 {
 
 	if len(txg.Tx) == 0 {
@@ -206,25 +231,9 @@ func (txg *TxBuyGroupLog) GetTranslatedTotalPrice(asset AssetType) float64 {
 			entry := tx.(TransactionEntry)
 
 			if entry.GetSide() == SideTypeBuy {
-				return -entry.GetTranslatedTotalPrice(asset)
+				return entry.GetTranslatedTotalPrice(asset)
 			}
-			return entry.GetTranslatedTotalPrice(asset)
-
-		}).
-		SumFloats()
-
-}
-
-func (txg *TxBuyGroupLog) GetTranslatedFee(asset AssetType) float64 {
-
-	if len(txg.Tx) == 0 {
-		return 0
-	}
-
-	return linq.From(txg.Tx).
-		Select(func(tx interface{}) interface{} {
-
-			return tx.(TransactionEntry).GetTranslatedFee(asset)
+			return -entry.GetTranslatedTotalPrice(asset)
 
 		}).
 		SumFloats()
