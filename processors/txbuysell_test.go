@@ -1,11 +1,12 @@
 package processors
 
 import (
-	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
+	"github.com/mariotoffia/gocryptoadmin/output"
 	"github.com/mariotoffia/gocryptoadmin/parsers"
 	"github.com/mariotoffia/gocryptoadmin/txhistory"
 	"github.com/mariotoffia/gocryptoadmin/txlog"
@@ -72,23 +73,24 @@ func TestBuySell(t *testing.T) {
 
 	txPairs := buysell.Flush()
 
-	//	op := output.NewStdPrinterDefaults(os.Stdout, "default")
+	op := output.NewStdPrinterDefaults(os.Stdout, "default")
 
 	for _, tx := range txPairs {
 
-		bu := tx.GetBuy()
-		fmt.Printf(
-			"%s\t%s\t%s\t%f\t%f\n",
-			bu.GetAssetPair(),
-			tx.GetCreatedAt().Format(time.RFC3339),
-			tx.GetSell().GetCreatedAt().Format(time.RFC3339),
-			tx.GetBuy().GetTotalPrice(),
-			tx.GetSell().GetTotalPrice(),
-		)
-
-		//		op.Process(tx)
+		//bu := tx.GetBuy()
+		/*
+			fmt.Printf(
+				"%s\t%s\t%s\t%f\t%f\n",
+				bu.GetAssetPair(),
+				tx.GetCreatedAt().Format(time.RFC3339),
+				tx.GetSell().GetCreatedAt().Format(time.RFC3339),
+				tx.GetBuy().GetTotalPrice(),
+				tx.GetSell().GetTotalPrice(),
+			)
+		*/
+		op.Process(tx)
 	}
 
-	//	op.Flush()
+	op.Flush()
 
 }
