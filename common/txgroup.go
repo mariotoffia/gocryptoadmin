@@ -240,7 +240,10 @@ func (txg *TxGroupEntry) Clone() TransactionEntry {
 	e := &TxGroupEntry{TransactionLog: txg.TransactionLog}
 
 	if len(txg.Tx) > 0 {
-		e.Tx = append(e.Tx, txg.Tx...)
+
+		for i := range txg.Tx {
+			e.Tx = append(e.Tx, txg.Tx[i].Clone())
+		}
 	}
 
 	return e
@@ -299,7 +302,8 @@ func (txg *TxGroupEntry) SplitSize(
 	if entry.GetAssetSize() == size {
 
 		szd.Tx = []TransactionEntry{entry}
-		ofl.Tx = append(txg.Tx[:found], txg.Tx[found+1:]...)
+		ofl.Tx = append(ofl.Tx, txg.Tx[:found]...)
+		ofl.Tx = append(ofl.Tx, txg.Tx[found+1:]...)
 		return szd, ofl
 
 	}
@@ -310,7 +314,8 @@ func (txg *TxGroupEntry) SplitSize(
 
 	szd.Tx = []TransactionEntry{entrysized.(TransactionEntry)}
 
-	ofl.Tx = append(txg.Tx[:found], entryoverflow.(TransactionEntry))
+	ofl.Tx = append(ofl.Tx, txg.Tx[:found]...)
+	ofl.Tx = append(ofl.Tx, entryoverflow.(TransactionEntry))
 	ofl.Tx = append(ofl.Tx, txg.Tx[found+1:]...)
 
 	return szd, ofl

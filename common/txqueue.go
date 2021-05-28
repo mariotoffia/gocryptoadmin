@@ -151,6 +151,17 @@ func (q *TxAssetFIFOQueues) Len(asset AssetType) int {
 	return q.getQueue(asset).Len()
 }
 
+func (q *TxAssetFIFOQueues) TotalLen() int {
+
+	cnt := 0
+
+	for _, q := range q.queues {
+		cnt += q.Len()
+	}
+
+	return cnt
+}
+
 func (q *TxAssetFIFOQueues) getQueue(asset AssetType) FIFOTxQueue {
 
 	queue := q.queues[asset]

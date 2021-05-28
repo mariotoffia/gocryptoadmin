@@ -3,8 +3,6 @@ package common
 import (
 	"sort"
 	"time"
-
-	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
 // AccountStatus contains all assets and their current status.
@@ -190,21 +188,53 @@ func (acc *AccountLog) SplitSize(
 	size float64,
 ) (sized TransactionEntry, overflow TransactionEntry) {
 
-	szd := acc.Clone().(*AccountLog)
-	ofl := acc.Clone().(*AccountLog)
-
 	sized, overflow = acc.tx.SplitSize(size)
-	percent := sized.GetAssetSize() / size
 
-	szd.tx = sized
-	ofl.tx = overflow
+	szd := &AccountLog{
+		tx:     sized,
+		sorted: acc.sorted,
+	}
 
-	for k, v := range szd.status {
+	ofl := &AccountLog{
+		tx:     overflow,
+		sorted: acc.sorted,
+	}
 
-		status := v * percent
+	if len(acc.status) > 0 {
 
-		szd.status[k] = utils.ToFixed(status, 8)
-		ofl.status[k] = utils.ToFixed(v-status, 8)
+		szd.status = AccountStatus{}
+		ofl.status = AccountStatus{}
+
+		for k, v := range acc.status {
+
+			szd.status[k] = v
+			ofl.status[k] = v
+
+		}
+
+	}
+
+	percent := size / acc.GetAssetSize()
+
+	asset := acc.GetAssetPair().Asset
+	costUnit := acc.GetAssetPair().CostUnit
+	side := acc.GetSide()
+
+	// Belows is inverting the _percent_ amount that was processed
+	// using `NextAccountLog`. The _ofl_ is not affected, only _szd_ will
+	// have more or less in the account.
+	szd.status[costUnit] = szd.status[costUnit] - acc.GetTotalPrice()*percent
+
+	if asset != costUnit && acc.GetPricePerUnit() != 1.0 {
+
+		if side == SideTypeSell || side == SideTypeTransfer {
+			szd.status[asset] = szd.status[asset] + szd.GetAssetSize()
+		} else {
+
+			// Get more of the asset since buy or have received the asset.
+			szd.status[asset] = szd.status[asset] - szd.GetAssetSize()
+
+		}
 
 	}
 

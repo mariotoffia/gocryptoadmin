@@ -11,13 +11,15 @@ import (
 type TxBuySellProcessor struct {
 	queue   *common.TxAssetFIFOQueues
 	entries []common.TxPair
+	log     bool
 }
 
-func NewTxBuySellProcessor() *TxBuySellProcessor {
+func NewTxBuySellProcessor(log bool) *TxBuySellProcessor {
 
 	return &TxBuySellProcessor{
 		queue:   common.NewTxAssetFIFOQueues(),
 		entries: []common.TxPair{},
+		log:     log,
 	}
 
 }
@@ -38,6 +40,7 @@ func (bs *TxBuySellProcessor) ProcessMany(tx []common.TransactionEntry) {
 
 func (bs *TxBuySellProcessor) Process(tx common.TransactionEntry) {
 
+	tx = tx.Clone()
 	side := tx.GetSide()
 
 	if side == common.SideTypeBuy {
@@ -57,18 +60,30 @@ func (bs *TxBuySellProcessor) Process(tx common.TransactionEntry) {
 		// TODO: Mark as "NO_TAX" since this entry is now already taxed
 		// TODO: due to the _tx_ is sold and tax is paid for that.
 		bs.queue.Enq(assetPair.CostUnit, tx)
+
+		if bs.log {
+			logSingle("Push", assetPair.CostUnit, tx, true /*price*/, false)
+		}
 	}
 
-	entries, res, size := bs.drainBuys(assetPair.CostUnit, tx.GetAssetSize())
+	entries, res, size := bs.drainBuys(assetPair.Asset, tx.GetAssetSize())
 
 	// Split last entry and PutBack overflow into queue again.
 	if res == common.DequeueUntilResultOverflow {
 
 		keep, putback := splitEntryByOverflow(entries[len(entries)-1], -size)
-		bs.queue.Enq(assetPair.CostUnit, putback)
+		bs.queue.Enq(assetPair.Asset, putback)
 
 		entries = append(entries[:len(entries)-1], keep)
 
+		if bs.log {
+			logSingle("PushBack", assetPair.Asset, putback, false /*size*/, false)
+		}
+
+	}
+
+	if bs.log {
+		log("Pop", assetPair.Asset, entries, true)
 	}
 
 	// Entries are the BUY transactions that matches this single sell!
@@ -88,6 +103,10 @@ func (bs *TxBuySellProcessor) ProcessBuy(tx common.TransactionEntry) {
 	// Enqueue the BUY order to later match a SELL.
 	bs.queue.Enq(assetPair.Asset, tx)
 
+	if bs.log {
+		logSingle("Push", assetPair.Asset, tx, false /*size*/, assetPair.CostUnit.IsFIAT())
+	}
+
 	if assetPair.CostUnit.IsFIAT() {
 		return
 	}
@@ -95,7 +114,18 @@ func (bs *TxBuySellProcessor) ProcessBuy(tx common.TransactionEntry) {
 	// Need to remove BUY transaction(s) for CostUnit
 	// by getting the total price, since crypto this will match
 	// up to BUY tx GetAssetSize().
-	entries, res, size := bs.drainBuys(assetPair.CostUnit, tx.GetTotalPrice())
+	//
+	// It is negated since the buy in crypto will log entry as with fiat -> negative value.
+	entries, res, size := bs.drainBuys(assetPair.CostUnit, -tx.GetTotalPrice())
+
+	if bs.log {
+		log(
+			"Pop",
+			assetPair.CostUnit,
+			entries,
+			res == common.DequeueUntilResultDone,
+		)
+	}
 
 	if res == common.DequeueUntilResultDone {
 		return // All is removed
@@ -103,7 +133,55 @@ func (bs *TxBuySellProcessor) ProcessBuy(tx common.TransactionEntry) {
 
 	// Extract overflow and put it back to FIFO queue
 	_, putback := splitEntryByOverflow(entries[len(entries)-1], -size)
+
 	bs.queue.Enq(assetPair.CostUnit, putback)
+
+	if bs.log {
+		logSingle("PushBack", assetPair.CostUnit, putback, false /*size*/, true)
+	}
+
+}
+
+func logSingle(dir string, asset common.AssetType, entry common.TransactionEntry, price, cr bool) {
+
+	fmt.Printf("%s(", dir)
+
+	f := entry.GetAssetSize()
+
+	if price {
+		f = entry.GetTotalPrice()
+	}
+
+	fmt.Printf("%f %s)  ", f, asset)
+
+	if cr {
+		fmt.Println()
+	}
+}
+
+func log(dir string, asset common.AssetType, entries []common.TransactionEntry, cr bool) {
+
+	fmt.Printf("%s(", dir)
+
+	f := float64(0)
+	for _, entry := range entries {
+
+		side := entry.GetSide()
+		if side == common.SideTypeSell {
+			f += entry.GetTotalPrice()
+		} else if side == common.SideTypeBuy {
+			f = entry.GetAssetSize()
+		} else {
+			panic("expecting BUY or SELL while logging")
+		}
+
+	}
+
+	fmt.Printf("%f %s)  ", f, asset)
+
+	if cr {
+		fmt.Println()
+	}
 }
 
 func (bs *TxBuySellProcessor) Flush() []common.TxPair {
@@ -140,7 +218,14 @@ func (bs *TxBuySellProcessor) drainBuys(
 		asset,
 		func(tx common.TransactionEntry) common.DequeueUntilResult {
 
-			size -= tx.GetAssetSize()
+			if tx.GetSide() == common.SideTypeBuy {
+				size -= tx.GetAssetSize()
+			} else if tx.GetSide() == common.SideTypeSell {
+				size -= tx.GetTotalPrice()
+			} else {
+				panic("expecting BUY or SELL only")
+			}
+
 			return bs.dequeueResultFromSize(size)
 
 		},

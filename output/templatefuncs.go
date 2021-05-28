@@ -10,6 +10,8 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
+// https://golang.org/pkg/text/template/
+
 var templatefuncs = template.FuncMap{
 	"translated": translatedHeader,
 	"account":    accountStatus,

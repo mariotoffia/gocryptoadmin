@@ -1,12 +1,11 @@
 package processors
 
 import (
-	"os"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
-	"github.com/mariotoffia/gocryptoadmin/output"
 	"github.com/mariotoffia/gocryptoadmin/parsers"
 	"github.com/mariotoffia/gocryptoadmin/txhistory"
 	"github.com/mariotoffia/gocryptoadmin/txlog"
@@ -16,6 +15,7 @@ import (
 
 func TestBuySell(t *testing.T) {
 
+	// 1. Setup resolver
 	expr := parsers.NewResolverParser().
 		Parse("cbx:ETH = cbx:BTC").
 		Parse("cbx:BTC = cbx,all:EUR").
@@ -34,6 +34,7 @@ func TestBuySell(t *testing.T) {
 
 	resolver := txhistory.NewTxOHCResolver(cache).AddTranslations(expr...)
 
+	// 2. Load tx log
 	txr := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
 		RegisterReader("cbx", coinbasepro.NewTransactionLogReader())
 
@@ -41,6 +42,7 @@ func TestBuySell(t *testing.T) {
 		"cbx", utils.ReadFile("testfiles/cost-unit/cb.csv"),
 	)
 
+	// 3. Apply cost unit tracking on tx log entries
 	coproc := NewCostUnitProcessor(resolver, nil /*default pricing*/)
 
 	coproc.RegisterAsset(common.AssetTypeEuro, common.AssetTypeSvenskKrona)
@@ -48,6 +50,7 @@ func TestBuySell(t *testing.T) {
 
 	tx = coproc.Flush()
 
+	// 4. Group the transaction entries
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
 
 	for _, tx := range tx {
@@ -56,6 +59,7 @@ func TestBuySell(t *testing.T) {
 
 	txg := proc.Flush()
 
+	// 5. Apply accounting (single exchange)
 	acc := NewAccountingProcessor("cbx")
 	for _, tx := range txg {
 		acc.Process(&tx)
@@ -63,13 +67,28 @@ func TestBuySell(t *testing.T) {
 
 	transactions := acc.Flush()
 
-	op := output.NewStdPrinterDefaults(os.Stdout, "default")
+	buysell := NewTxBuySellProcessor(true /*log*/)
+	buysell.ProcessMany(transactions)
 
-	for _, tx := range transactions {
+	txPairs := buysell.Flush()
 
-		op.Process(tx)
+	//	op := output.NewStdPrinterDefaults(os.Stdout, "default")
+
+	for _, tx := range txPairs {
+
+		bu := tx.Buy()
+		fmt.Printf(
+			"%s %s %s %f %f\n",
+			bu.GetAssetPair(),
+			tx.BuyCreatedAt().Format(time.RFC3339),
+			tx.SellCreatedAt().Format(time.RFC3339),
+			tx.BuyTotal(),
+			tx.SellTotal(),
+		)
+
+		//		op.Process(tx)
 	}
 
-	op.Flush()
+	//	op.Flush()
 
 }
