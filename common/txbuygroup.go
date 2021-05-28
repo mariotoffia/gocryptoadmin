@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 
+	"github.com/ahmetb/go-linq/v3"
 	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
@@ -191,6 +192,43 @@ func (txg *TxBuyGroupLog) GetTotalPrice() float64 {
 		})
 
 	return price
+}
+
+func (txg *TxBuyGroupLog) GetTranslatedTotalPrice(asset AssetType) float64 {
+
+	if len(txg.Tx) == 0 {
+		return 0
+	}
+
+	return linq.From(txg.Tx).
+		Select(func(tx interface{}) interface{} {
+
+			entry := tx.(TransactionEntry)
+
+			if entry.GetSide() == SideTypeBuy {
+				return -entry.GetTranslatedTotalPrice(asset)
+			}
+			return entry.GetTranslatedTotalPrice(asset)
+
+		}).
+		SumFloats()
+
+}
+
+func (txg *TxBuyGroupLog) GetTranslatedFee(asset AssetType) float64 {
+
+	if len(txg.Tx) == 0 {
+		return 0
+	}
+
+	return linq.From(txg.Tx).
+		Select(func(tx interface{}) interface{} {
+
+			return tx.(TransactionEntry).GetTranslatedFee(asset)
+
+		}).
+		SumFloats()
+
 }
 
 func (txg *TxBuyGroupLog) GetMostProminentSizeTransactionLog() TransactionEntry {

@@ -67,9 +67,7 @@ func TestBuySell(t *testing.T) {
 
 	transactions := acc.Flush()
 
-	buysell := NewTxBuySellProcessor(false /*log*/).
-		ToFiat(common.AssetTypeEuro)
-
+	buysell := NewTxBuySellProcessor(false /*log*/)
 	buysell.ProcessMany(transactions)
 
 	txPairs := buysell.Flush()
