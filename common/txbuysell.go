@@ -76,3 +76,16 @@ func (tx *TxBuySellLog) GetSell() TransactionEntry {
 func (tx *TxBuySellLog) GetBuy() *TxBuyGroupLog {
 	return &tx.BuyTx
 }
+
+func (tx *TxBuySellLog) Clone() TransactionEntry {
+
+	buyTx := tx.BuyTx.Clone().(*TxBuyGroupLog)
+
+	log := &TxBuySellLog{
+		TransactionLog: tx.TransactionLog,
+		SellTx:         tx.SellTx.Clone(),
+		BuyTx:          *buyTx,
+	}
+
+	return log
+}

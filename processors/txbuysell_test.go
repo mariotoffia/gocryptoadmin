@@ -73,7 +73,7 @@ func TestBuySell(t *testing.T) {
 
 	txPairs := buysell.Flush()
 
-	op := output.NewStdPrinterDefaults(os.Stdout, "default")
+	op := output.NewStdPrinterDefaults(os.Stdout, "default-buysell")
 
 	for _, tx := range txPairs {
 
