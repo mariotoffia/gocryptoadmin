@@ -1,0 +1,261 @@
+package common
+
+import (
+	"fmt"
+
+	"github.com/mariotoffia/gocryptoadmin/utils"
+)
+
+type TxLBuyGroupEntry interface {
+	// IsMultiAsset returns `true` if any of the `AssetType`.
+	//
+	// Depending on entry `SideType.Buy` or `SideType.Sell` it will
+	// use the asset or cost unit to determine equality of `AssetType`
+	// amongst the entries.
+	IsMultiAsset() bool
+}
+
+// TxBuyGroupLog is exactly the same as `TxGroupEntry` but functions
+// has been overridden to cope with _BUY_ *and* _SELL_ transactions in
+// same group.
+//
+// This is due to that a sell may include buys that was _really_ a sell
+// from one crypto currency to another, and that _"another"_ is now sold.
+type TxBuyGroupLog struct {
+	TxGroupEntry
+	multi bool
+}
+
+func NewTxBuyGroupLog(entries []TransactionEntry) *TxBuyGroupLog {
+
+	l := &TxBuyGroupLog{
+		TxGroupEntry: TxGroupEntry{
+			Tx: entries,
+		},
+	}
+
+	if len(entries) > 0 {
+		l.ID = fmt.Sprintf("%s-buygroup", entries[0].GetID())
+	}
+
+	l.IsMultiAsset() // Update cache
+	return l
+}
+
+func (txg *TxBuyGroupLog) AddTransactionEntry(tx TransactionEntry) *TxGroupEntry {
+
+	txg.Tx = append(txg.Tx, tx)
+
+	txg.IsMultiAsset() // Update cache
+	return &txg.TxGroupEntry
+
+}
+
+func (txg *TxBuyGroupLog) IsMultiAsset() bool {
+
+	txg.multi = false
+	if len(txg.Tx) == 0 {
+		return false
+	}
+
+	var asset AssetType
+	if txg.Tx[0].GetSide() == SideTypeBuy {
+		asset = txg.Tx[0].GetAssetPair().Asset
+	} else {
+		asset = txg.Tx[0].GetAssetPair().CostUnit // Sell
+	}
+
+	txg.iterate(
+		func(entry TransactionEntry, side SideType, adjsize float64) bool {
+
+			if side == SideTypeBuy && entry.GetAssetPair().Asset == asset {
+				return true
+			}
+
+			if entry.GetAssetPair().CostUnit == asset {
+				return true
+			}
+
+			txg.multi = true
+			return false
+		})
+
+	return txg.multi
+
+}
+
+// GetAssetSize will iterate all entries and sum the asset sizes.
+//
+// If the direction is BUY it will use `GetAssetSize`, if it is
+// sell it will use `GetTotalPrice` since it is a _BUY_ of a
+// crypto currency that has been sold now (in `TxBuySellLog`).
+func (txg *TxBuyGroupLog) GetAssetSize() float64 {
+
+	if len(txg.Tx) == 0 {
+		return 0
+	}
+
+	size := float64(0)
+
+	txg.iterate(
+		func(entry TransactionEntry, side SideType, adjsize float64) bool {
+			size += adjsize
+			return true
+		})
+
+	return size
+
+}
+
+func (txg *TxBuyGroupLog) GetPricePerUnit() float64 {
+
+	if len(txg.Tx) == 0 {
+		return 0
+	}
+
+	if txg.multi {
+		panic("cannot get price per unit on multi entry")
+	}
+
+	price := float64(0)
+	totalSize := txg.GetAssetSize()
+
+	txg.iterate(
+		func(entry TransactionEntry, side SideType, adjsize float64) bool {
+
+			weightedSize := adjsize / totalSize
+
+			var ppe float64
+			if side == SideTypeBuy {
+				ppe = entry.GetPricePerUnit()
+			} else {
+				ppe = entry.GetAssetSize() / (entry.GetTotalPrice() - entry.GetFee())
+			}
+
+			price = utils.ToFixed(price+(ppe*weightedSize), 8)
+			return true
+		})
+
+	return price
+
+}
+
+func (txg *TxBuyGroupLog) GetFee() float64 {
+
+	if len(txg.Tx) == 0 {
+		return 0
+	}
+
+	if txg.multi {
+		panic("cannot get fee on multi entry")
+	}
+
+	var fee float64
+	txg.iterate(
+		func(entry TransactionEntry, side SideType, adjsize float64) bool {
+
+			if side == SideTypeBuy {
+				fee += entry.GetFee()
+			} else {
+				fee = entry.GetFee() / entry.GetPricePerUnit()
+			}
+
+			return true
+		})
+
+	return fee
+
+}
+
+func (txg *TxBuyGroupLog) GetTotalPrice() float64 {
+
+	if len(txg.Tx) == 0 {
+		return 0
+	}
+
+	if txg.multi {
+		panic("cannot get total price on multi entry")
+	}
+
+	var price float64
+	txg.iterate(
+		func(entry TransactionEntry, side SideType, adjsize float64) bool {
+
+			if side == SideTypeBuy {
+				price += entry.GetTotalPrice()
+			} else {
+				price = entry.GetAssetSize()
+			}
+
+			return true
+		})
+
+	return price
+}
+
+func (txg *TxBuyGroupLog) GetMostProminentSizeTransactionLog() TransactionEntry {
+
+	if len(txg.Tx) == 0 {
+		return &TransactionLog{}
+	}
+
+	max := float64(0)
+	var found TransactionEntry
+
+	txg.iterate(
+		func(entry TransactionEntry, side SideType, adjsize float64) bool {
+
+			if adjsize > max {
+				max = adjsize
+				found = entry
+			}
+
+			return true
+		})
+
+	return found
+
+}
+
+func (txg *TxBuyGroupLog) Clone() TransactionEntry {
+
+	e := &TxBuyGroupLog{
+		TxGroupEntry: txg.TxGroupEntry,
+		multi:        txg.multi,
+	}
+
+	if len(txg.Tx) > 0 {
+
+		for i := range txg.Tx {
+			e.Tx = append(e.Tx, txg.Tx[i].Clone())
+		}
+	}
+
+	return e
+
+}
+
+func (txg *TxBuyGroupLog) iterate(
+	processor func(entry TransactionEntry, side SideType, adjsize float64) bool,
+) {
+
+	for i := range txg.Tx {
+
+		entry := txg.Tx[i].(TransactionEntry)
+		side := entry.GetSide()
+		adjsize := float64(0)
+
+		if side == SideTypeSell {
+			adjsize = entry.GetTotalPrice()
+		} else if side == SideTypeBuy {
+			adjsize = entry.GetAssetSize()
+		} else {
+			panic("sell or buy expected")
+		}
+
+		if !processor(entry, side, adjsize) {
+			break
+		}
+	}
+
+}

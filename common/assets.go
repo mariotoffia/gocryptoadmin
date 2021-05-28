@@ -80,6 +80,18 @@ func (asset AssetType) IsTether() bool {
 	return asset == AssetTypeUSDT
 }
 
+// ExistsIn checks if _asset_ is part of _assets_.
+func (asset AssetType) ExistsIn(assets ...AssetType) bool {
+
+	for i := range assets {
+		if asset == assets[i] {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Normalize parses the name and makes sure that is matches a asset type.
 //
 // For example _XBT_ is translated to `AssetTypeBTC` or _ZEUR_ is translated

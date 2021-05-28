@@ -10,22 +10,28 @@ import (
 // earlier `common.SideTypeBuy` transactions.
 type TxBuySellProcessor struct {
 	queue   *common.TxAssetFIFOQueues
-	entries []common.TxPair
+	entries []common.TxBuySellEntry
 	log     bool
+	fiat    common.AssetType
 }
 
 func NewTxBuySellProcessor(log bool) *TxBuySellProcessor {
 
 	return &TxBuySellProcessor{
 		queue:   common.NewTxAssetFIFOQueues(),
-		entries: []common.TxPair{},
+		entries: []common.TxBuySellEntry{},
 		log:     log,
 	}
 
 }
 
+func (bs *TxBuySellProcessor) ToFiat(fiat common.AssetType) *TxBuySellProcessor {
+	bs.fiat = fiat
+	return bs
+}
+
 func (bs *TxBuySellProcessor) Reset() {
-	bs.entries = []common.TxPair{}
+	bs.entries = []common.TxBuySellEntry{}
 }
 
 func (bs *TxBuySellProcessor) ProcessMany(tx []common.TransactionEntry) {
@@ -88,11 +94,7 @@ func (bs *TxBuySellProcessor) Process(tx common.TransactionEntry) {
 
 	// Entries are the BUY transactions that matches this single sell!
 	// Create TxPair and assign buy and sell side -> bs.entries
-	bs.entries = append(bs.entries, &common.TxPairEntry{
-		SellTx: common.TxGroupEntry{Tx: []common.TransactionEntry{tx}},
-		BuyTx:  common.TxGroupEntry{Tx: entries},
-	})
-
+	bs.entries = append(bs.entries, common.NewTxBuySellLog(bs.fiat, tx, entries))
 }
 
 // ProcessBuy will process a _tx_ that reflects a BUY transaction.
@@ -184,7 +186,7 @@ func log(dir string, asset common.AssetType, entries []common.TransactionEntry, 
 	}
 }
 
-func (bs *TxBuySellProcessor) Flush() []common.TxPair {
+func (bs *TxBuySellProcessor) Flush() []common.TxBuySellEntry {
 
 	p := bs.entries
 	bs.Reset()

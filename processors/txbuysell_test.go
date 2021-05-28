@@ -67,7 +67,9 @@ func TestBuySell(t *testing.T) {
 
 	transactions := acc.Flush()
 
-	buysell := NewTxBuySellProcessor(true /*log*/)
+	buysell := NewTxBuySellProcessor(false /*log*/).
+		ToFiat(common.AssetTypeEuro)
+
 	buysell.ProcessMany(transactions)
 
 	txPairs := buysell.Flush()
@@ -76,14 +78,14 @@ func TestBuySell(t *testing.T) {
 
 	for _, tx := range txPairs {
 
-		bu := tx.Buy()
+		bu := tx.GetBuy()
 		fmt.Printf(
-			"%s %s %s %f %f\n",
+			"%s\t%s\t%s\t%f\t%f\n",
 			bu.GetAssetPair(),
-			tx.BuyCreatedAt().Format(time.RFC3339),
-			tx.SellCreatedAt().Format(time.RFC3339),
-			tx.BuyTotal(),
-			tx.SellTotal(),
+			tx.GetCreatedAt().Format(time.RFC3339),
+			tx.GetSell().GetCreatedAt().Format(time.RFC3339),
+			tx.GetBuy().GetTotalPrice(),
+			tx.GetSell().GetTotalPrice(),
 		)
 
 		//		op.Process(tx)

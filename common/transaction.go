@@ -14,6 +14,14 @@ const (
 	SideTypeSell     SideType = "SELL"
 	SideTypeReceive  SideType = "RECEIVE"
 	SideTypeTransfer SideType = "TRANSFER"
+	// SideTypeBuySell is a paired transaction where it will contain
+	// both one or more transaction that represents a _BUY_ that
+	// accumulates to one _SELL_ transaction.
+	//
+	// However, the buy side may contain both `SideTypeBuy` *and* `SideTypeSell`.
+	// The latter is when a _SELL_ transaction resulted in some crypto currency
+	// that later got sold for _FIAT_.
+	SideTypeBuySell SideType = "BUYSELL"
 )
 
 const (
@@ -77,6 +85,42 @@ type TransactionLog struct {
 
 func (tx *TransactionLog) GetID() string {
 	return tx.ID
+}
+
+func (tx *TransactionLog) GetExchange() string {
+	return tx.Exchange
+}
+
+func (tx *TransactionLog) GetSide() SideType {
+	return tx.Side
+}
+
+func (tx *TransactionLog) GetSideIdentifier() string {
+	return tx.SideIdentifier
+}
+
+func (tx *TransactionLog) GetCreatedAt() time.Time {
+	return tx.CreatedAt
+}
+
+func (tx *TransactionLog) GetAssetSize() float64 {
+	return tx.AssetSize
+}
+
+func (tx *TransactionLog) GetPricePerUnit() float64 {
+	return tx.PricePerUnit
+}
+
+func (tx *TransactionLog) GetFee() float64 {
+	return tx.Fee
+}
+
+func (tx *TransactionLog) GetTotalPrice() float64 {
+	return tx.TotalPrice
+}
+
+func (tx *TransactionLog) GetAssetPair() AssetPair {
+	return tx.AssetPair
 }
 
 // SplitSize will split the current `TransactionEntry` by creating one by _size_ and
@@ -222,40 +266,4 @@ func (tx *TransactionLog) GetTranslatedAssets() []AssetType {
 	}
 
 	return assets
-}
-
-func (tx *TransactionLog) GetExchange() string {
-	return tx.Exchange
-}
-
-func (tx *TransactionLog) GetSide() SideType {
-	return tx.Side
-}
-
-func (tx *TransactionLog) GetSideIdentifier() string {
-	return tx.SideIdentifier
-}
-
-func (tx *TransactionLog) GetCreatedAt() time.Time {
-	return tx.CreatedAt
-}
-
-func (tx *TransactionLog) GetAssetSize() float64 {
-	return tx.AssetSize
-}
-
-func (tx *TransactionLog) GetPricePerUnit() float64 {
-	return tx.PricePerUnit
-}
-
-func (tx *TransactionLog) GetFee() float64 {
-	return tx.Fee
-}
-
-func (tx *TransactionLog) GetTotalPrice() float64 {
-	return tx.TotalPrice
-}
-
-func (tx *TransactionLog) GetAssetPair() AssetPair {
-	return tx.AssetPair
 }
