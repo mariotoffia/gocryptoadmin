@@ -77,18 +77,8 @@ func TestBuySell(t *testing.T) {
 
 	for _, tx := range txPairs {
 
-		//bu := tx.GetBuy()
-		/*
-			fmt.Printf(
-				"%s\t%s\t%s\t%f\t%f\n",
-				bu.GetAssetPair(),
-				tx.GetCreatedAt().Format(time.RFC3339),
-				tx.GetSell().GetCreatedAt().Format(time.RFC3339),
-				tx.GetBuy().GetTotalPrice(),
-				tx.GetSell().GetTotalPrice(),
-			)
-		*/
 		op.Process(tx)
+
 	}
 
 	op.Flush()

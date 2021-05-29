@@ -267,8 +267,10 @@ func (txg *TxBuyGroupLog) GetMostProminentSizeTransactionLog() TransactionEntry 
 func (txg *TxBuyGroupLog) Clone() TransactionEntry {
 
 	e := &TxBuyGroupLog{
-		TxGroupEntry: txg.TxGroupEntry,
-		multi:        txg.multi,
+		TxGroupEntry: TxGroupEntry{
+			TransactionLog: txg.TxGroupEntry.TransactionLog,
+		},
+		multi: txg.multi,
 	}
 
 	if len(txg.Tx) > 0 {

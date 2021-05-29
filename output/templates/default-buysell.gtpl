@@ -1,5 +1,5 @@
-----------------------------------------------------------------------------------------------------------------------------------------------------------{{ account . "separator" "optional"}}{{ translated . "separator"}}
-|Exchange  |Bought Date         |Sold Date           |Pair    |Size         |Bought           |Sold             |Bought Fee   |Sold Fee     |Tax          |{{ account . "header" "optional"}}{{ translated . "header"}}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------{{ account . "separator" "optional"}}{{ translated . "separator"}}
+|Exchange  |Bought Date         |Sold Date           |Pair    |Size         |Purchase Price   |Selling Price    |Purchase Fee |Selling Fee  |Tax          |{{ account . "header" "optional"}}{{ translated . "header"}}
 -----------------------------------------------------------------------------------------------------------------------------------------------------------{{ account . "separator" "optional"}}{{ translated . "separator"}}
 {{range . }} 
 {{- printf "|%-10s|" .GetExchange }}
