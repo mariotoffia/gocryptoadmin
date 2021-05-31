@@ -10,6 +10,7 @@ import (
 	"text/template"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
+	"github.com/mariotoffia/gocryptoadmin/output/functions"
 )
 
 //go:embed templates/*.gtpl
@@ -117,7 +118,7 @@ func (scp *StdPrinter) LineTemplate(lineTemplate string) *StdPrinter {
 
 	scp.output = template.Must(
 		template.New("lineTemplate").
-			Funcs(templatefuncs).
+			Funcs(functions.Templatefuncs).
 			Parse(lineTemplate),
 	)
 
@@ -135,7 +136,7 @@ func (scp *StdPrinter) FullTemplate(fullTemplate string) *StdPrinter {
 
 	scp.output = template.Must(
 		template.New("fullTemplate").
-			Funcs(templatefuncs).
+			Funcs(functions.Templatefuncs).
 			Parse(fullTemplate),
 	)
 
@@ -154,7 +155,7 @@ func (scp *StdPrinter) HeaderTemplate(headerTemplate string) *StdPrinter {
 
 	scp.header = template.Must(
 		template.New("fullTemplate").
-			Funcs(templatefuncs).
+			Funcs(functions.Templatefuncs).
 			Parse(headerTemplate),
 	)
 
