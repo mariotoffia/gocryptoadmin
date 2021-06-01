@@ -100,7 +100,7 @@ func translated(value interface{}, command, text, fee string, assets ...string) 
 			if csv {
 
 				s += fmt.Sprintf(
-					"%f;%f;",
+					"%.8f;%.8f;",
 					tot,
 					entry.GetTranslatedFee(asset),
 				)
@@ -108,7 +108,7 @@ func translated(value interface{}, command, text, fee string, assets ...string) 
 			} else {
 
 				s += fmt.Sprintf(
-					"% -17f|% -13f|",
+					"% -17.8f|% -13.8f|",
 					tot,
 					entry.GetTranslatedFee(asset),
 				)

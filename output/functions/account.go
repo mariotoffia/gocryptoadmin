@@ -80,7 +80,7 @@ func account(value interface{}, command string, assets ...string) string {
 
 	s := ""
 	for _, asset := range list {
-		s += fmt.Sprintf("% -17f|", status[asset])
+		s += fmt.Sprintf("% -17.8f|", status[asset])
 	}
 
 	return s

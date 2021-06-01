@@ -58,6 +58,8 @@ const (
 	AssetTypeXRP         AssetType = "XRP"
 	AssetTypeCVC         AssetType = "CVC"
 	AssetTypeXLM         AssetType = "XLM"
+	AssetTypeDASH        AssetType = "DASH"
+	AssetTypeLSK         AssetType = "LSK"
 )
 
 // IsFIAT checks if the `AssetType` is plain FIAT or crypto currency
