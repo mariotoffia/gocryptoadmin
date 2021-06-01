@@ -13,7 +13,7 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/txlog/kraken"
 )
 
-func TestReadCoinbasedTxLog(t *testing.T) {
+func TestReadCoinbaseTxLogBuySell(t *testing.T) {
 
 	tx := NewTxLogReader(processors.NewChronologicalTxEntryProcessor()).
 		UseDir("testfiles/cbx").

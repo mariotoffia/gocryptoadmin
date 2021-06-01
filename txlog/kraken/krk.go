@@ -138,6 +138,8 @@ func toSide(side string) common.SideType {
 func toAssetPair(pair string) common.AssetPair {
 
 	switch pair {
+	case "XXBTZEUR", "XBTZEUR":
+		return common.AssetPair{Asset: common.AssetTypeBTC, CostUnit: common.AssetTypeEuro}
 	case "XXRPZEUR":
 		return common.AssetPair{Asset: common.AssetTypeXRP, CostUnit: common.AssetTypeEuro}
 	case "XETHZEUR":
@@ -146,9 +148,11 @@ func toAssetPair(pair string) common.AssetPair {
 		return common.AssetPair{Asset: common.AssetTypeLTC, CostUnit: common.AssetTypeEuro}
 	case "XXLMXXBT":
 		return common.AssetPair{Asset: common.AssetTypeXLM, CostUnit: common.AssetTypeBTC}
+	case "ZEURZEUR":
+		return common.AssetPair{Asset: common.AssetTypeEuro, CostUnit: common.AssetTypeEuro}
 	}
 
-	panic(fmt.Sprintf("unknown pair (please add to kraken txlog: %s", pair))
+	panic(fmt.Sprintf("unknown pair - please add to kraken txlog: %s", pair))
 
 }
 

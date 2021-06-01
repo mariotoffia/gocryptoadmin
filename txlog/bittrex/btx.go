@@ -86,7 +86,13 @@ func (c *btx) Transform(v *BtxTransaction, sideIdentifier string) common.Transac
 
 	t, err := time.Parse("1/2/2006 15:04:05 PM", v.CreatedAt)
 	if err != nil {
-		panic(err)
+
+		t, err = time.Parse("2006/01/02 15:04:05", v.CreatedAt)
+
+		if err != nil {
+			panic(err)
+		}
+
 	}
 
 	tx := common.TransactionLog{
