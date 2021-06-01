@@ -10,6 +10,7 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/output"
 	"github.com/mariotoffia/gocryptoadmin/processors"
 	"github.com/mariotoffia/gocryptoadmin/txlog/coinbasepro"
+	"github.com/mariotoffia/gocryptoadmin/txlog/kraken"
 	"github.com/stretchr/testify/require"
 )
 
@@ -62,6 +63,25 @@ func TestReadCoinbasedTxLogFiles(t *testing.T) {
 		UseDir("../data").
 		IgnoreUnknownFiles().
 		RegisterReader("cbx", coinbasepro.NewTransactionLogReader()).
+		Read()
+
+	proc := output.NewStdPrinterDefaults(os.Stdout, "default")
+
+	for _, tx := range tx {
+
+		proc.Process(&tx)
+	}
+
+	proc.Flush()
+
+	fmt.Println(len(tx))
+}
+
+func TestKrakenReadBuySell(t *testing.T) {
+
+	tx := NewTxLogReader(processors.NewChronologicalTxEntryProcessor()).
+		UseDir("testfiles/krk").
+		RegisterReader("krk", kraken.NewTransactionLogReader()).
 		Read()
 
 	proc := output.NewStdPrinterDefaults(os.Stdout, "default")

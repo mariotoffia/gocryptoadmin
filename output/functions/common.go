@@ -31,6 +31,7 @@ func toFirstEntry(value interface{}) common.TransactionEntry {
 		}
 
 		return e[0]
+
 	} else if e, ok := value.(*common.TxBuyGroupLog); ok {
 		return e
 	} else if e, ok := value.([]*common.TxBuyGroupLog); ok {
@@ -39,6 +40,16 @@ func toFirstEntry(value interface{}) common.TransactionEntry {
 		}
 
 		return e[0]
+	} else if e, ok := value.(*common.TransactionLog); ok {
+		return e
+	} else if e, ok := value.([]*common.TransactionLog); ok {
+
+		if len(e) == 0 {
+			return nil
+		}
+
+		return e[0]
+
 	}
 
 	return nil

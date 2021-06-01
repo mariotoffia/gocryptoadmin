@@ -14,10 +14,18 @@ import (
 
 // cbp implements the `TransactionLogReader` interface
 type cbp struct {
+	exchange string
 }
 
 func NewTransactionLogReader() common.TransactionLogReader {
-	return &cbp{}
+	return &cbp{exchange: "cbx"}
+}
+
+func (c *cbp) SetExchange(name string) common.TransactionLogReader {
+
+	c.exchange = name
+
+	return c
 }
 
 func (c *cbp) Unmarshal(data []byte) []common.TransactionLog {

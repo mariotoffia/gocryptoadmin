@@ -38,6 +38,11 @@ func account(value interface{}, command string, assets ...string) string {
 	if e, ok := entry.(common.AccountEntry); ok {
 		accentry = e
 	} else {
+
+		if optional {
+			return ""
+		}
+
 		panic(fmt.Sprintf("expecting account entry, found: %T", e))
 	}
 

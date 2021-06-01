@@ -53,7 +53,9 @@ func (lr *TxLogReaderImpl) RegisterReader(
 	name string,
 	reader common.TransactionLogReader) *TxLogReaderImpl {
 
+	reader.SetExchange(name)
 	lr.readers[name] = reader
+
 	return lr
 
 }
