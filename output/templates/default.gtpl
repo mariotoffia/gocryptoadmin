@@ -1,6 +1,6 @@
---------------------------------------------------------------------------------------------------------------------{{ account . "separator" "optional"}}{{ translated . "separator" "Total Price" "Fee"}}
+----------------------------------------------------------------------------------------------------------------------{{ account . "separator" "optional"}}{{ translated . "separator" "Total Price" "Fee"}}
 |Exchange  |Side     |Tx Date             |Pair    |Size           |Price / Unit     |Fee          |Total Price      |{{ account . "header" "optional"}}{{ translated . "header" "Total Price" "Fee"}}
---------------------------------------------------------------------------------------------------------------------{{ account . "separator" "optional"}}{{ translated . "separator" "Total Price" "Fee"}}
+----------------------------------------------------------------------------------------------------------------------{{ account . "separator" "optional"}}{{ translated . "separator" "Total Price" "Fee"}}
 {{range . }} 
 {{- printf "|%-10s" .GetExchange }}
 {{- printf "|%-9v|" .GetSide }}
