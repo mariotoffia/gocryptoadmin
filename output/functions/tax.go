@@ -44,7 +44,7 @@ func tax(value interface{}, command, text string, tax float64, assets ...string)
 
 		s := ""
 		for _, asset := range list {
-			s += fmt.Sprintf("%s %-5v", text, asset)
+			s += fmt.Sprintf("%-7s %-5v|", text, asset)
 		}
 
 		return s
@@ -52,8 +52,7 @@ func tax(value interface{}, command, text string, tax float64, assets ...string)
 
 	if command == "separator" {
 
-		l := len(text) + 22
-		return strings.Repeat("-", len(list)*l)
+		return strings.Repeat("-", len(list)*14)
 
 	}
 

@@ -9,7 +9,7 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
-func translated(value interface{}, command string, assets ...string) string {
+func translated(value interface{}, command, text, fee string, assets ...string) string {
 
 	entry := toFirstEntry(value)
 
@@ -44,24 +44,48 @@ func translated(value interface{}, command string, assets ...string) string {
 
 		s := ""
 		for _, asset := range list {
-			s += fmt.Sprintf("Total Price %-5v|Fee %-9v|", asset, asset)
+			assetLen := len(string(asset))
+
+			s += fmt.Sprintf(
+				"%s %v%s|%s %v%s|",
+				text,
+				asset,
+				strings.Repeat(" ", 16-(len(text)+assetLen)),
+				fee,
+				asset,
+				strings.Repeat(" ", 12-(len(fee)+assetLen)),
+			)
 		}
 
 		return s
 	}
 
 	if command == "separator" {
+
 		return strings.Repeat("-", len(list)*32)
+
 	}
 
-	if command == "total-and-fee" || command == "" {
+	if command == "" {
+		command = "total-and-fee"
+	}
+
+	if strings.HasPrefix(command, "total-and-fee") {
+
+		positive := strings.HasSuffix(command, "-positive")
 
 		s := ""
 		for _, asset := range list {
 
+			tot := entry.GetTranslatedTotalPrice(asset)
+
+			if positive && tot < 0 {
+				tot = -tot
+			}
+
 			s += fmt.Sprintf(
 				"% -17f|% -13f|",
-				entry.GetTranslatedTotalPrice(asset),
+				tot,
 				entry.GetTranslatedFee(asset),
 			)
 
