@@ -44,6 +44,7 @@ func translated(value interface{}, command, text, fee string, assets ...string) 
 
 		s := ""
 		for _, asset := range list {
+
 			assetLen := len(string(asset))
 
 			s += fmt.Sprintf(

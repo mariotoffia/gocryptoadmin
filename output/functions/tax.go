@@ -44,7 +44,10 @@ func tax(value interface{}, command, text string, tax float64, assets ...string)
 
 		s := ""
 		for _, asset := range list {
-			s += fmt.Sprintf("%-7s %-5v|", text, asset)
+
+			assetLen := len(string(asset))
+
+			s += fmt.Sprintf("%s %v%s|", text, asset, strings.Repeat(" ", 12-(len(text)+assetLen)))
 		}
 
 		return s
