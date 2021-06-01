@@ -108,6 +108,10 @@ func (c *krk) Transform(v *KrkTransaction, sideIdentifier string) common.Transac
 
 	tx.TotalPrice = toTotalPrice(v.Total, v.Fee, tx.Side)
 
+	if tx.Side == common.SideTypeBuy || tx.Side == common.SideTypeTransfer {
+		tx.TotalPrice = -tx.TotalPrice
+	}
+
 	return tx
 }
 

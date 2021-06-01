@@ -149,6 +149,10 @@ func (c *bst) Transform(v *BstTransaction, sideIdentifier string) common.Transac
 
 	}
 
+	if tx.Side == common.SideTypeBuy || tx.Side == common.SideTypeTransfer {
+		tx.TotalPrice = -tx.TotalPrice
+	}
+
 	return tx
 }
 
@@ -156,8 +160,8 @@ func (c *bst) Transform(v *BstTransaction, sideIdentifier string) common.Transac
 //
 // Using the following calculations
 //
-// 1. Sell Fee: size * price - fee [example: (0,7 * 910,32) - 1,59306 = 635,63094]
-// 2. Buy Fee: size * price + fee  [example: (1782 * 0,112815) - 0,301554495 = 201,337884495]
+// 1. Sell Fee: total - fee [example: (0,7 * 910,32) - 1,59306 = 635,63094]
+// 2. Buy Fee: total + fee  [example: (1782 * 0,112815) - 0,301554495 = 201,337884495]
 func toTotalPrice(total, fee float64, side common.SideType) float64 {
 
 	switch side {

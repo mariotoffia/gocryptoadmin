@@ -59,25 +59,26 @@ func TestReadAllDataAccounting(t *testing.T) {
 
 	txg := proc.Flush()
 
-	acc := NewAccountingProcessor(common.ExchangeAll)
+	acc := NewMultiExchangeAccountingProcessor()
 	for i := range txg {
 		acc.Process(&txg[i]) // Since accepting interface, use indexer
 	}
 
 	txa := acc.Flush()
 
-	op := output.NewStdPrinterDefaults(os.Stdout, "default")
+	for exchange, txs := range txa {
 
-	for i, tx := range txa {
-
-		op.Process(tx)
-		if i == -1 {
-			break
+		if exchange == "cbx" || exchange == common.ExchangeAll {
+			continue
 		}
 
+		op := output.NewStdPrinterDefaults(os.Stdout, "default")
+
+		for _, tx := range txs {
+			op.Process(tx)
+		}
+
+		op.Flush()
 	}
 
-	op.Flush()
-
-	fmt.Println(len(txa))
 }
