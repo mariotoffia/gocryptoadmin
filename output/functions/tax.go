@@ -9,49 +9,11 @@ import (
 	"github.com/mariotoffia/gocryptoadmin/utils"
 )
 
-func tax(value interface{}, command string, assets ...string) string {
+func tax(value interface{}, command, text string, tax float64, assets ...string) string {
 
-	optional := false
-	if len(assets) > 0 {
-		if strings.ToLower(assets[0]) == "optional" {
-			optional = true
-			assets = assets[1:]
-		}
-	}
+	entry := toFirstEntry(value)
 
-	var entry common.AccountEntry
-
-	if e, ok := value.([]common.TransactionEntry); ok {
-
-		if len(e) == 0 {
-			return ""
-		}
-
-		if ex, ok := e[0].(common.AccountEntry); ok {
-			entry = ex
-		} else {
-
-			if optional {
-				return ""
-			}
-
-			panic(
-				fmt.Sprintf(
-					"expecting either array or scalar common.TransactionEntry, got: %T", value,
-				),
-			)
-
-		}
-
-	} else if e, ok := value.(common.AccountEntry); ok {
-		entry = e
-	} else if e, ok := value.([]common.AccountEntry); ok {
-		entry = e[0]
-	} else {
-
-		if optional {
-			return ""
-		}
+	if entry == nil {
 
 		panic(
 			fmt.Sprintf(
@@ -62,8 +24,7 @@ func tax(value interface{}, command string, assets ...string) string {
 	}
 
 	list := []common.AssetType{}
-	status := entry.GetAccountStatus()
-	for asset := range status {
+	for _, asset := range entry.GetTranslatedAssets() {
 
 		if len(assets) == 0 || utils.StringContains(assets, string(asset)) {
 			list = append(list, asset)
@@ -83,20 +44,47 @@ func tax(value interface{}, command string, assets ...string) string {
 
 		s := ""
 		for _, asset := range list {
-			s += fmt.Sprintf("Account %-9v|", asset)
+			s += fmt.Sprintf("%s %-5v", text, asset)
 		}
 
 		return s
 	}
 
 	if command == "separator" {
-		return strings.Repeat("-", len(list)*18)
+
+		l := len(text) + 22
+		return strings.Repeat("-", len(list)*l)
+
 	}
 
-	s := ""
-	for _, asset := range list {
-		s += fmt.Sprintf("% -17f|", status[asset])
+	var bs common.TxBuySellEntry
+	if e, ok := entry.(common.TxBuySellEntry); ok {
+		bs = e
+	} else {
+		panic(fmt.Sprintf("expecting TxBuySellEntry, found: %T", e))
 	}
 
-	return s
+	buy := bs.GetBuy()
+	sell := bs.GetSell()
+
+	tax /= 100
+
+	if command == "tax-all" {
+
+		s := ""
+		for _, asset := range list {
+
+			buyPrice := buy.GetTranslatedTotalPrice(asset)
+			sellPrice := sell.GetTranslatedTotalPrice(asset)
+			taxed := utils.ToFixed((sellPrice+buyPrice)*tax, 8)
+
+			s += fmt.Sprintf("% -13f|", taxed)
+
+		}
+
+		return s
+
+	}
+
+	return fmt.Sprintf("unknown command: %s", command)
 }

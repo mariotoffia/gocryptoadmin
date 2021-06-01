@@ -11,19 +11,9 @@ import (
 
 func translated(value interface{}, command string, assets ...string) string {
 
-	var entry common.TransactionEntry
+	entry := toFirstEntry(value)
 
-	if e, ok := value.([]common.TransactionEntry); ok {
-
-		if len(e) == 0 {
-			return ""
-		}
-
-		entry = e[0]
-
-	} else if e, ok := value.(common.TransactionEntry); ok {
-		entry = e
-	} else {
+	if entry == nil {
 
 		panic(
 			fmt.Sprintf(
