@@ -40,22 +40,33 @@ func translated(value interface{}, command, text, fee string, assets ...string) 
 		return ""
 	}
 
-	if command == "header" {
+	if command == "header" || command == "csv-header" {
+
+		csv := strings.HasPrefix(command, "csv-")
 
 		s := ""
 		for _, asset := range list {
 
-			assetLen := len(string(asset))
+			if csv {
 
-			s += fmt.Sprintf(
-				"%s %v%s|%s %v%s|",
-				text,
-				asset,
-				strings.Repeat(" ", 16-(len(text)+assetLen)),
-				fee,
-				asset,
-				strings.Repeat(" ", 12-(len(fee)+assetLen)),
-			)
+				s += fmt.Sprintf("%s %v;%s %v;", text, asset, fee, asset)
+
+			} else {
+
+				assetLen := len(string(asset))
+
+				s += fmt.Sprintf(
+					"%s %v%s|%s %v%s|",
+					text,
+					asset,
+					strings.Repeat(" ", 16-(len(text)+assetLen)),
+					fee,
+					asset,
+					strings.Repeat(" ", 12-(len(fee)+assetLen)),
+				)
+
+			}
+
 		}
 
 		return s
@@ -71,9 +82,11 @@ func translated(value interface{}, command, text, fee string, assets ...string) 
 		command = "total-and-fee"
 	}
 
-	if strings.HasPrefix(command, "total-and-fee") {
+	if strings.HasPrefix(command, "total-and-fee") ||
+		strings.HasPrefix(command, "csv-total-and-fee") {
 
 		positive := strings.HasSuffix(command, "-positive")
+		csv := strings.HasPrefix(command, "csv-")
 
 		s := ""
 		for _, asset := range list {
@@ -84,11 +97,23 @@ func translated(value interface{}, command, text, fee string, assets ...string) 
 				tot = -tot
 			}
 
-			s += fmt.Sprintf(
-				"% -17f|% -13f|",
-				tot,
-				entry.GetTranslatedFee(asset),
-			)
+			if csv {
+
+				s += fmt.Sprintf(
+					"%f;%f;",
+					tot,
+					entry.GetTranslatedFee(asset),
+				)
+
+			} else {
+
+				s += fmt.Sprintf(
+					"% -17f|% -13f|",
+					tot,
+					entry.GetTranslatedFee(asset),
+				)
+
+			}
 
 		}
 

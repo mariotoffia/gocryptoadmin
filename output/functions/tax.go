@@ -40,14 +40,25 @@ func tax(value interface{}, command, text string, tax float64, assets ...string)
 		return ""
 	}
 
-	if command == "header" {
+	if command == "header" || command == "csv-header" {
+
+		csv := strings.HasPrefix(command, "csv-")
 
 		s := ""
 		for _, asset := range list {
 
 			assetLen := len(string(asset))
 
-			s += fmt.Sprintf("%s %v%s|", text, asset, strings.Repeat(" ", 12-(len(text)+assetLen)))
+			if csv {
+
+				s += fmt.Sprintf("%s %v;", text, asset)
+
+			} else {
+
+				s += fmt.Sprintf("%s %v%s|", text, asset, strings.Repeat(" ", 12-(len(text)+assetLen)))
+
+			}
+
 		}
 
 		return s
@@ -71,7 +82,9 @@ func tax(value interface{}, command, text string, tax float64, assets ...string)
 
 	tax /= 100
 
-	if command == "tax-all" {
+	if command == "tax-all" || command == "csv-tax-all" {
+
+		csv := strings.HasPrefix(command, "csv-")
 
 		s := ""
 		for _, asset := range list {
@@ -80,8 +93,15 @@ func tax(value interface{}, command, text string, tax float64, assets ...string)
 			sellPrice := sell.GetTranslatedTotalPrice(asset)
 			taxed := utils.ToFixed((sellPrice+buyPrice)*tax, 8)
 
-			s += fmt.Sprintf("% -13f|", taxed)
+			if csv {
 
+				s += fmt.Sprintf("%f;", taxed)
+
+			} else {
+
+				s += fmt.Sprintf("% -13f|", taxed)
+
+			}
 		}
 
 		return s
