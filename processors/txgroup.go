@@ -79,7 +79,12 @@ func (txg *TxGroupProcessor) Reset() {
 // 1. Is New Tx -> Check if exists asset with either cost or asset type that is not the exact
 // AssetPair as new tx. (e.g. new: LTC-EUR, in cache LTC-LTC, the latter will then close). It will check
 // both asset and cost unit (only non _FIAT_!).
-// 2. Within Group Window (if any)
+//
+// 2. Is _TRANSFER_ or _RECEIVE_ and not new Tx, it will close any older of same kind and `AssetPair`. If
+// _TRANSFER_ it will check if any `AssetType` same as _TRANSFER_ `AssetType`. It will terminate those.
+// _RECEIVE_, it will check if any `AssetType` same as _RECEIVE_ `AssetType`. It will terminate those.
+//
+// 3. Within Group Window (if any)
 //
 // If any of the above bullets fail, all _"Open"_ `Transaction` instances should be merged.
 func (txg *TxGroupProcessor) Process(tx common.TransactionEntry) {
@@ -102,6 +107,26 @@ func (txg *TxGroupProcessor) Process(tx common.TransactionEntry) {
 
 			}
 
+		} else if tx.GetSide() == common.SideTypeReceive || tx.GetSide() == common.SideTypeTransfer {
+
+			// 2. Is _TRANSFER_ or _RECEIVE_...
+			txg.cache.CreateCacheAddTx(tx)
+
+			if items, ok := txg.cache.GetByExchangeAssetType(tx.GetExchange(), tx.GetAssetPair().Asset); ok {
+
+				for i := range items {
+
+					if items[i].IsOpen() {
+						txg.transactions = append(txg.transactions, txg.cache.FlushCache(items[i]))
+
+					}
+
+				}
+
+			}
+
+			return
+
 		}
 
 		txg.cache.CreateCacheAddTx(tx)
@@ -117,7 +142,7 @@ func (txg *TxGroupProcessor) Process(tx common.TransactionEntry) {
 
 	}
 
-	// 2. Within Group Window (if any)
+	// 3. Within Group Window (if any)
 	txg.cache.AddTransactionToCache(tx)
 }
 

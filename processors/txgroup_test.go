@@ -66,6 +66,6 @@ func TestBuyTransferShallBeSplitWhenTransfer(t *testing.T) {
 
 	op.Flush()
 
-	fmt.Printf("tx.len: %d txg.len: %d\n", len(tx), len(txg))
-	assert.Equal(t, 10, len(txg))
+	assert.Equal(t, 11, len(txg))
+	assert.Equal(t, 12, len(tx))
 }

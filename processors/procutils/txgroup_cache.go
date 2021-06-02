@@ -130,89 +130,13 @@ func (txg *TxGroupCache) GetAssetPairWhenNonFIAT(
 
 }
 
-// GetAllOtherSide will return all sides found in cache, except, in param side.
-func (txg *TxGroupCache) GetAllOtherSide(
-	tx common.TransactionEntry,
-	side common.SideType,
-) (items []*TxGroupCacheItem, found bool) {
-
-	other := []common.SideType{
-		common.SideTypeBuy,
-		common.SideTypeSell,
-		common.SideTypeReceive,
-		common.SideTypeTransfer,
-	}
-
-	for i := 0; i < 4; i++ {
-
-		if other[i] == side {
-
-			other = append(other[:i], other[i+1:]...)
-			break
-		}
-
-	}
-
-	items = []*TxGroupCacheItem{}
-
-	for _, s := range other {
-
-		key := txg.render(tx, s)
-		if _, found := txg.cache[key]; found {
-			items = append(items, txg.cache[key])
-		}
-
-	}
-
-	return items, len(items) > 0
-
-}
-
-// GetOtherSide is same as `GetCache` except that it will get the inverse `SideType`
-// of the transaction. It will *panic* if the `SideType` is unknown.
-//
-// .Other Side
-// ====
-// 1. tx side is _BUY_ -> it will look for _SELL_
-// 2. tx side is _RECEIVE_ or _TRANSFER_ it will panic!
-// ====
-func (txg *TxGroupCache) GetOtherSide(
-	tx common.TransactionEntry,
-) (item *TxGroupCacheItem, found bool) {
-
-	var side common.SideType
-	switch tx.GetSide() {
-	case common.SideTypeBuy:
-		side = common.SideTypeSell
-	case common.SideTypeSell:
-		side = common.SideTypeBuy
-	case common.SideTypeReceive:
-		fallthrough
-	case common.SideTypeTransfer:
-		fallthrough
-	default:
-		panic(
-			fmt.Sprintf(
-				"not supported sidetype in get other side operation: %s", string(tx.GetSide()),
-			),
-		)
-	}
-
-	key := txg.render(tx, side)
-	item, found = txg.cache[key]
-	return
-}
-
 // GetByExchangeCostUnit will return all `TxGroupCacheItem` instances that do have
-// transactions with same `CostUnit` and exchange as the `tx.Asset`.
+// transactions with same `AssetType` and exchange as the `tx.Asset`.
 //
-// Usually, the cost unit is in EUR or $ but it may be e.g. LTC, BTC and if e.g. _assetType_ is
-// _BTC_, and there exist a few cache items with `CostUnit` of _BTC_ (e.g. _XRP-BTC_),
-// those will be returned.
-func (txg *TxGroupCache) GetByExchangeCostUnit(
+func (txg *TxGroupCache) GetByExchangeAssetType(
 	exchange string,
 	assetType common.AssetType,
-) []*TxGroupCacheItem {
+) ([]*TxGroupCacheItem, bool) {
 
 	var res []*TxGroupCacheItem
 
@@ -223,7 +147,7 @@ func (txg *TxGroupCache) GetByExchangeCostUnit(
 			e := c.tx
 
 			return e.GetExchange() == exchange &&
-				e.GetAssetPair().CostUnit == assetType &&
+				e.GetAssetPair().Asset == assetType &&
 				c.IsOpen()
 
 		}).
@@ -232,7 +156,7 @@ func (txg *TxGroupCache) GetByExchangeCostUnit(
 		}).
 		ToSlice(&res)
 
-	return res
+	return res, len(res) > 0
 }
 
 // CreateCacheAddTx will create a chache item and add the current transaction to it.
