@@ -83,7 +83,7 @@ func (c *cbp) Transform(v *CbpTransaction, sideIdentifier string) common.Transac
 
 	return common.TransactionLog{
 		ID:             v.ID,
-		Exchange:       "cbx",
+		Exchange:       c.exchange,
 		Side:           v.Side,
 		SideIdentifier: sideIdentifier,
 		CreatedAt:      v.CreatedAt,

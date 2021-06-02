@@ -49,6 +49,7 @@ func TestReadAllDataAccounting(t *testing.T) {
 		RegisterReader("bst", bitstamp.NewTransactionLogReader()).
 		RegisterReader("btx", bittrex.NewTransactionLogReader()).
 		RegisterReader("krk", kraken.NewTransactionLogReader()).
+		RegisterReader("lf", coinbasepro.NewTransactionLogReader()).
 		Read()
 
 	proc := NewTxGroupProcessor(time.Hour * 20 /*20h*/)
