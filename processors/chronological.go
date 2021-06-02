@@ -3,6 +3,7 @@ package processors
 import (
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/mariotoffia/gocryptoadmin/common"
 )
@@ -50,7 +51,9 @@ func (c *ChronologicalTxEntryProcessor) Flush() []common.TransactionLog {
 			if c.tx[i].Exchange == c.tx[j].Exchange {
 
 				if c.tx[i].Exchange == "cbx" &&
-					c.tx[i].AssetPair == c.tx[j].AssetPair {
+					c.tx[i].AssetPair == c.tx[j].AssetPair &&
+					!strings.HasPrefix(c.tx[i].ID, "M") &&
+					!strings.HasPrefix(c.tx[j].ID, "M") {
 
 					li, err := strconv.ParseInt(c.tx[i].ID, 10, 64)
 					if err != nil {
