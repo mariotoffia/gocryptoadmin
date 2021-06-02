@@ -45,10 +45,10 @@ func TestReadAllDataAccounting(t *testing.T) {
 	tx := txlog.NewTxLogReader(NewChronologicalTxEntryProcessor()).
 		UseDir("../data").
 		IgnoreUnknownFiles().
-		//RegisterReader("cbx", coinbasepro.NewTransactionLogReader()).
-		//RegisterReader("bst", bitstamp.NewTransactionLogReader()).
-		//RegisterReader("btx", bittrex.NewTransactionLogReader()).
-		//RegisterReader("krk", kraken.NewTransactionLogReader()).
+		RegisterReader("cbx", coinbasepro.NewTransactionLogReader()).
+		RegisterReader("bst", bitstamp.NewTransactionLogReader()).
+		RegisterReader("btx", bittrex.NewTransactionLogReader()).
+		RegisterReader("krk", kraken.NewTransactionLogReader()).
 		RegisterReader("lf", coinbasepro.NewTransactionLogReader()).
 		Read()
 

@@ -154,6 +154,12 @@ func toAssetPair(pair string) common.AssetPair {
 		return common.AssetPair{Asset: common.AssetTypeXLM, CostUnit: common.AssetTypeBTC}
 	case "ZEURZEUR":
 		return common.AssetPair{Asset: common.AssetTypeEuro, CostUnit: common.AssetTypeEuro}
+	case "XLTCXLTC":
+		return common.AssetPair{Asset: common.AssetTypeLTC, CostUnit: common.AssetTypeLTC}
+	case "XETHXETH":
+		return common.AssetPair{Asset: common.AssetTypeETH, CostUnit: common.AssetTypeETH}
+	case "XBTCXBTC":
+		return common.AssetPair{Asset: common.AssetTypeBTC, CostUnit: common.AssetTypeBTC}
 	}
 
 	panic(fmt.Sprintf("unknown pair - please add to kraken txlog: %s", pair))
