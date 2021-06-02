@@ -73,7 +73,7 @@ func TestReadAllDataAccounting(t *testing.T) {
 			continue
 		}
 
-		op := output.NewStdPrinterDefaults(os.Stdout, "default")
+		op := output.NewStdPrinterDefaults(os.Stdout, "default-sideid")
 
 		for _, tx := range txs {
 			op.Process(tx)
