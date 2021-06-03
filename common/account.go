@@ -165,6 +165,14 @@ func (acc *AccountLog) GetAssetPair() AssetPair {
 	return acc.tx.GetAssetPair()
 }
 
+func (acc *AccountLog) GetTaxType() TaxType {
+	return acc.tx.GetTaxType()
+}
+
+func (acc *AccountLog) SetTaxType(t TaxType) {
+	acc.tx.SetTaxType(t)
+}
+
 func (acc *AccountLog) Clone() TransactionEntry {
 
 	a := &AccountLog{

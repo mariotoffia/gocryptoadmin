@@ -9,9 +9,10 @@ import (
 // TxBuySellProcessor will pair `common.SideTypeSell` with
 // earlier `common.SideTypeBuy` transactions.
 type TxBuySellProcessor struct {
-	queue   *common.TxAssetFIFOQueues
-	entries []common.TxBuySellEntry
-	log     bool
+	queue    *common.TxAssetFIFOQueues
+	entries  []common.TxBuySellEntry
+	log      bool
+	taxation bool
 }
 
 func NewTxBuySellProcessor(log bool) *TxBuySellProcessor {
@@ -26,6 +27,16 @@ func NewTxBuySellProcessor(log bool) *TxBuySellProcessor {
 
 func (bs *TxBuySellProcessor) Reset() {
 	bs.entries = []common.TxBuySellEntry{}
+}
+
+// UseTaxationMarking enables the taxation marking, reducing the
+// double taxation that may occur when e.g. selling LTC to BTC and
+// then BTC to EUR. When this is enabled it will mark the LTC-BTC
+// SELL tx as taxed. Hence, the BTC-EUR will not be taxed (other)
+// than the difference between LTC-BTC, BTC Value, and the value of
+// BTC when BTC-EUR occurrence.
+func (bs *TxBuySellProcessor) UseTaxationMarking() {
+	bs.taxation = true
 }
 
 func (bs *TxBuySellProcessor) ProcessMany(tx []common.TransactionEntry) {
@@ -56,9 +67,12 @@ func (bs *TxBuySellProcessor) Process(tx common.TransactionEntry) {
 	assetPair := tx.GetAssetPair()
 
 	if !assetPair.CostUnit.IsFIAT() {
-		// Got crypto as payment
-		// TODO: Mark as "NO_TAX" since this entry is now already taxed
-		// TODO: due to the _tx_ is sold and tax is paid for that.
+
+		// Got crypto as payment: Mark as taxed!
+		if bs.taxation {
+			tx.SetTaxType(common.Taxed)
+		}
+
 		bs.queue.Enq(assetPair.CostUnit, tx)
 
 		if bs.log {

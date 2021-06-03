@@ -214,6 +214,39 @@ func (txg *TxGroupEntry) GetAssetPair() AssetPair {
 
 }
 
+func (txg *TxGroupEntry) GetTaxType() TaxType {
+
+	if len(txg.Tx) == 0 {
+		return NotTaxed
+	}
+
+	t := txg.Tx[0].GetTaxType()
+
+	for _, tx := range txg.Tx {
+
+		if tx.GetTaxType() != t {
+			panic("different types of tax types in entries")
+		}
+
+	}
+
+	return t
+
+}
+func (txg *TxGroupEntry) SetTaxType(t TaxType) {
+
+	if len(txg.Tx) == 0 {
+		panic("cannot set tax type without any transactions in group")
+	}
+
+	for _, tx := range txg.Tx {
+
+		tx.SetTaxType(t)
+
+	}
+
+}
+
 func (txg *TxGroupEntry) GetMostProminentSizeTransactionLog() TransactionEntry {
 
 	if len(txg.Tx) == 0 {

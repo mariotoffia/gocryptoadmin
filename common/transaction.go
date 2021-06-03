@@ -29,6 +29,13 @@ const (
 	ExchangeAll string = "all"
 )
 
+type TaxType int
+
+const (
+	NotTaxed TaxType = 0
+	Taxed    TaxType = 1
+)
+
 type CostUnitTranslations interface {
 	// TranslatedTotalPrice returns zero or positive value
 	// for translated values (if needed) to the specified
@@ -56,8 +63,10 @@ type TransactionEntry interface {
 	GetPricePerUnit() float64
 	GetFee() float64
 	GetTotalPrice() float64
-
 	GetAssetPair() AssetPair
+	GetTaxType() TaxType
+	SetTaxType(t TaxType)
+
 	Clone() TransactionEntry
 	// SplitSize will split the current `TransactionEntry` by creating one by _size_ and
 	// the other _overflow_ with the rest. All data is recalculated on each side, _split_ and _overflow_
@@ -79,7 +88,7 @@ type TransactionLog struct {
 	TotalPrice           float64            `csv:"total"    json:"total"`
 	TranslatedTotalPrice map[string]float64 `               json:"translatedprice"`
 	TranslatedFee        map[string]float64 `               json:"translatedfee"`
-
+	TaxType              TaxType            `               json:"taxtype"`
 	AssetPair
 }
 
@@ -123,6 +132,14 @@ func (tx *TransactionLog) GetAssetPair() AssetPair {
 	return tx.AssetPair
 }
 
+func (tx *TransactionLog) GetTaxType() TaxType {
+	return tx.TaxType
+}
+
+func (tx *TransactionLog) SetTaxType(t TaxType) {
+	tx.TaxType = t
+}
+
 // SplitSize will split the current `TransactionEntry` by creating one by _size_ and
 // the other _overflow_ with the rest. All data is recalculated on each side, _split_ and _overflow_
 // so adding up both will have the same sums as the current one.
@@ -130,7 +147,7 @@ func (tx *TransactionLog) SplitSize(
 	size float64,
 ) (sized TransactionEntry, overflow TransactionEntry) {
 
-	percent := utils.ToFixed(size/tx.AssetSize, 8)
+	percent := size / tx.AssetSize
 
 	szd := tx.Clone().(*TransactionLog)
 	ofl := tx.Clone().(*TransactionLog)
@@ -188,6 +205,7 @@ func (tx *TransactionLog) Clone() TransactionEntry {
 			Asset:    tx.Asset,
 			CostUnit: tx.CostUnit,
 		},
+		TaxType: tx.TaxType,
 	}
 
 	if len(tx.TranslatedFee) > 0 {
