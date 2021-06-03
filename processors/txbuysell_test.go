@@ -68,7 +68,10 @@ func TestBuySell(t *testing.T) {
 
 	transactions := acc.Flush()
 
-	buysell := NewTxBuySellProcessor(false /*log*/)
+	buysell := NewTxBuySellProcessor()
+	//buysell.UseLog()
+	//buysell.UseTaxationMarking()
+
 	buysell.ProcessMany(transactions)
 
 	txPairs := buysell.Flush()

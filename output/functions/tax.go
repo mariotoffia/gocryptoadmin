@@ -91,6 +91,22 @@ func tax(value interface{}, command, text string, tax float64, assets ...string)
 
 			buyPrice := buy.GetTranslatedTotalPrice(asset)
 			sellPrice := sell.GetTranslatedTotalPrice(asset)
+
+			alreadyTaxed := float64(0)
+			for _, tx := range buy.GetTaxedEntries() {
+
+				price := tx.GetTranslatedTotalPrice(asset)
+
+				if price < 0 {
+					alreadyTaxed += -price
+				} else {
+					alreadyTaxed += price
+				}
+
+			}
+
+			// Since buy is negative - deduct the already taxed
+			buyPrice -= alreadyTaxed
 			taxed := utils.ToFixed((sellPrice+buyPrice)*tax, 8)
 
 			if csv {
@@ -100,6 +116,42 @@ func tax(value interface{}, command, text string, tax float64, assets ...string)
 			} else {
 
 				s += fmt.Sprintf("% -13f|", taxed)
+
+			}
+		}
+
+		return s
+
+	}
+
+	if command == "double-tax-all" || command == "csv-double-tax-all" {
+
+		csv := strings.HasPrefix(command, "csv-")
+
+		s := ""
+		for _, asset := range list {
+
+			// Calculate already taxed price
+			alreadyTaxed := float64(0)
+			for _, tx := range buy.GetTaxedEntries() {
+
+				price := tx.GetTranslatedTotalPrice(asset)
+
+				if price < 0 {
+					alreadyTaxed += -price
+				} else {
+					alreadyTaxed += price
+				}
+
+			}
+
+			if csv {
+
+				s += fmt.Sprintf("%f;", alreadyTaxed)
+
+			} else {
+
+				s += fmt.Sprintf("% -13f|", alreadyTaxed)
 
 			}
 		}

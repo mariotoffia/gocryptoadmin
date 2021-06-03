@@ -15,12 +15,11 @@ type TxBuySellProcessor struct {
 	taxation bool
 }
 
-func NewTxBuySellProcessor(log bool) *TxBuySellProcessor {
+func NewTxBuySellProcessor() *TxBuySellProcessor {
 
 	return &TxBuySellProcessor{
 		queue:   common.NewTxAssetFIFOQueues(),
 		entries: []common.TxBuySellEntry{},
-		log:     log,
 	}
 
 }
@@ -37,6 +36,11 @@ func (bs *TxBuySellProcessor) Reset() {
 // BTC when BTC-EUR occurrence.
 func (bs *TxBuySellProcessor) UseTaxationMarking() {
 	bs.taxation = true
+}
+
+// UseLog enables Enqueue, Dequeue, ReEnqueue logging
+func (bs *TxBuySellProcessor) UseLog() {
+	bs.log = true
 }
 
 func (bs *TxBuySellProcessor) ProcessMany(tx []common.TransactionEntry) {
