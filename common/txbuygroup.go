@@ -14,8 +14,6 @@ type TxLBuyGroupEntry interface {
 	// use the asset or cost unit to determine equality of `AssetType`
 	// amongst the entries.
 	IsMultiAsset() bool
-	// GetTaxedEntries returns all entries marked as `Taxed`.
-	GetTaxedEntries() []TransactionEntry
 }
 
 // TxBuyGroupLog is exactly the same as `TxGroupEntry` but functions
@@ -263,26 +261,6 @@ func (txg *TxBuyGroupLog) GetMostProminentSizeTransactionLog() TransactionEntry 
 		})
 
 	return found
-
-}
-
-func (txg *TxBuyGroupLog) GetTaxedEntries() []TransactionEntry {
-
-	if len(txg.Tx) == 0 {
-		return []TransactionEntry{}
-	}
-
-	var entries []TransactionEntry
-
-	linq.From(txg.Tx).
-		Where(func(tx interface{}) bool {
-
-			return tx.(TransactionEntry).GetTaxType() == Taxed
-
-		}).
-		ToSlice(&entries)
-
-	return entries
 
 }
 

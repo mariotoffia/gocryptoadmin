@@ -70,7 +70,7 @@ func TestBuySell(t *testing.T) {
 
 	buysell := NewTxBuySellProcessor()
 	//buysell.UseLog()
-	//buysell.UseTaxationMarking()
+	buysell.UseTaxationMarking()
 
 	buysell.ProcessMany(transactions)
 

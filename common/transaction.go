@@ -29,13 +29,6 @@ const (
 	ExchangeAll string = "all"
 )
 
-type TaxType int
-
-const (
-	NotTaxed TaxType = 0
-	Taxed    TaxType = 1
-)
-
 type CostUnitTranslations interface {
 	// TranslatedTotalPrice returns zero or positive value
 	// for translated values (if needed) to the specified
@@ -64,8 +57,6 @@ type TransactionEntry interface {
 	GetFee() float64
 	GetTotalPrice() float64
 	GetAssetPair() AssetPair
-	GetTaxType() TaxType
-	SetTaxType(t TaxType)
 
 	Clone() TransactionEntry
 	// SplitSize will split the current `TransactionEntry` by creating one by _size_ and
@@ -88,7 +79,6 @@ type TransactionLog struct {
 	TotalPrice           float64            `csv:"total"    json:"total"`
 	TranslatedTotalPrice map[string]float64 `               json:"translatedprice"`
 	TranslatedFee        map[string]float64 `               json:"translatedfee"`
-	TaxType              TaxType            `               json:"taxtype"`
 	AssetPair
 }
 
@@ -130,14 +120,6 @@ func (tx *TransactionLog) GetTotalPrice() float64 {
 
 func (tx *TransactionLog) GetAssetPair() AssetPair {
 	return tx.AssetPair
-}
-
-func (tx *TransactionLog) GetTaxType() TaxType {
-	return tx.TaxType
-}
-
-func (tx *TransactionLog) SetTaxType(t TaxType) {
-	tx.TaxType = t
 }
 
 // SplitSize will split the current `TransactionEntry` by creating one by _size_ and
@@ -205,7 +187,6 @@ func (tx *TransactionLog) Clone() TransactionEntry {
 			Asset:    tx.Asset,
 			CostUnit: tx.CostUnit,
 		},
-		TaxType: tx.TaxType,
 	}
 
 	if len(tx.TranslatedFee) > 0 {
