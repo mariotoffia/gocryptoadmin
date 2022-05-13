@@ -1,0 +1,5 @@
+Type,Datetime,Account,Amount,Value,Rate,Fee,Sub Type
+Deposit,"Dec. 19, 2017, 02:10 PM",Main Account,10.27772000 ETH,,,,
+Market,"Dec. 19, 2017, 04:59 PM",Main Account,10.27772000 ETH,3827.22 EUR,372.38 EUR,7.18000 EUR,Sell
+Market,"Dec. 19, 2017, 09:06 PM",Main Account,26.00000000 XRP,5.11 EUR,0.19649 EUR,0.02000 EUR,Buy
+Withdrawal,"Dec. 20, 2017, 05:45 AM",Main Account,50.34321665 LTC,,,0.00000000 LTC,

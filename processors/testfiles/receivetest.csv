@@ -1,0 +1,3 @@
+portfolio,trade id,product,side,sideid,created at,size,size unit,price,fee,total,price/fee/total unit
+default,TODO,LTC-LTC,RECEIVE,kraken,2017-12-06T08:00:00.000Z,150.00027,LTC,1,0.000000000,150.00027000,LTC
+default,381617,LTC-EUR,SELL,,2017-12-08T09:43:18.503Z,150.00027,LTC,5,0,750.00135,EUR

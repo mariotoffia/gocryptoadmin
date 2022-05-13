@@ -1,0 +1,3 @@
+portfolio,trade id,product,side,sideid,created at,size,size unit,price,fee,total,price/fee/total unit
+default,1,EUR-SEK,BUY,lf,2017-12-06T08:00:00.000Z,50.0,EUR,10,50.000000000,-550,SEK
+default,2,EUR-EUR,TRANSFER,kr,2017-12-06T09:00:00.000Z,48,EUR,1,2,-50,EUR
